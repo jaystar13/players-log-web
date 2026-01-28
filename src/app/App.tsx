@@ -3,7 +3,7 @@ import { Toaster } from 'sonner';
 import MainFeedPage from '@/pages/main-feed';
 import CreateLogPage from '@/pages/create-log'; // New import
 import EditLogPage from '@/pages/edit-log'; // New import
-import LogDetailScreen from '@/app/components/LogDetailScreen';
+import LogDetailPage from '@/pages/log-detail/ui';
 import MyPageScreen from '@/app/components/MyPageScreen';
 import LoginPage from '@/pages/login-page';
 import { api, supabase } from '@/shared/api';
@@ -93,7 +93,7 @@ export default function App() {
       )}
 
       {currentScreen === 'detail' && (
-        <LogDetailScreen 
+        <LogDetailPage 
           onBack={() => navigateTo('feed')} 
           logId={selectedLogId}
           onEdit={handleEditClick}

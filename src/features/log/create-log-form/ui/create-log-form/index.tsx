@@ -21,7 +21,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 
 import { cn } from '@/shared/ui/utils'; // Assuming cn utility
-import LogDetailScreen from '@/app/components/LogDetailScreen'; // Using existing LogDetailScreen for preview
+import LogDetailPage from '@/pages/log-detail/ui';
 import { useCreateLogForm } from '../../lib/use-create-log-form';
 import { InitialLogFormData } from '../../model/types';
 
@@ -61,21 +61,9 @@ export const CreateLogForm = ({ initialData, onSubmit, onBack }: CreateLogFormPr
   if (showPreview) {
     return (
       <div className="fixed inset-0 z-50 bg-white overflow-y-auto">
-        <div className="bg-amber-50 border-b border-amber-200 px-4 py-3 sticky top-0 z-50 flex justify-between items-center shadow-sm">
-          <div className="flex items-center gap-2 text-amber-800 font-bold">
-            <Eye className="w-5 h-5" />
-            Preview Mode
-          </div>
-          <button 
-            onClick={() => setShowPreview(false)}
-            className="px-4 py-1.5 bg-white border border-amber-200 text-amber-800 rounded-lg text-sm font-semibold hover:bg-amber-100 transition-colors"
-          >
-            Close Preview
-          </button>
-        </div>
-        <LogDetailScreen 
+        <LogDetailPage 
           onBack={() => setShowPreview(false)} 
-          previewData={getPreviewData} // Removed ()
+          previewData={getPreviewData}
         />
       </div>
     );
