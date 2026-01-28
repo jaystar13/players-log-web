@@ -4,7 +4,7 @@ import MainFeedPage from '@/pages/main-feed';
 import CreateLogPage from '@/pages/create-log'; // New import
 import EditLogPage from '@/pages/edit-log'; // New import
 import LogDetailPage from '@/pages/log-detail/ui';
-import MyPageScreen from '@/app/components/MyPageScreen';
+import MyPage from '@/pages/my-page/ui';
 import LoginPage from '@/pages/login-page';
 import { api, supabase } from '@/shared/api';
 import { Screen } from '@/shared/lib/navigation'; // New import
@@ -101,9 +101,9 @@ export default function App() {
       )}
 
       {currentScreen === 'mypage' && (
-        <MyPageScreen 
+        <MyPage 
           onBack={() => navigateTo('feed')}
-          onNavigateToDetail={(id) => navigateTo('detail', { id })}
+          onNavigate={navigateTo}
         />
       )}
     </div>
