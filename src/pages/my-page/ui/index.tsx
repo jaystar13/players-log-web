@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Loader2, LogOut, ChevronLeft } from 'lucide-react';
 import { api, supabase } from '@/shared/api';
 import { MyPageSidebar } from '@/widgets/my-page-sidebar/ui';
-import { MyLogList } from '@/widgets/my-log-list/ui';
+import { MyLogList } from '@/widgets/my-goll-list/ui';
 import { Screen } from '@/shared/lib/navigation';
 import EditProfilePage from '@/pages/edit-profile/ui';
-import { Log } from '@/entities/log/model/types';
+import { Log } from '@/entities/goll/model/types';
 
 interface MyPageProps {
   onBack: () => void;

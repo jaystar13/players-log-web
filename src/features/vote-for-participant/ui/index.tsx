@@ -1,4 +1,4 @@
-import { Log } from '@/entities/log/model/types';
+import { Log } from '@/entities/goll/model/types';
 import { cn } from '@/shared/ui/utils';
 import { motion } from 'framer-motion';
 import { Shield, Sparkles, ThumbsUp, Trophy, User } from 'lucide-react';

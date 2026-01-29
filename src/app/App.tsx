@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Toaster } from 'sonner';
 import MainFeedPage from '@/pages/main-feed';
-import CreateLogPage from '@/pages/create-log'; // New import
-import EditLogPage from '@/pages/edit-log'; // New import
-import LogDetailPage from '@/pages/log-detail/ui';
+import CreateLogPage from '@/pages/create-goll'; // New import
+import EditLogPage from '@/pages/edit-goll'; // New import
+import LogDetailPage from '@/pages/goll-detail/ui';
 import MyPage from '@/pages/my-page/ui';
 import LoginPage from '@/pages/login-page';
 import { api, supabase } from '@/shared/api';

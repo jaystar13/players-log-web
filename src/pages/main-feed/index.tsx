@@ -2,10 +2,10 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Plus } from 'lucide-react';
 
-import { useLogs } from '@/features/log/fetch-logs/lib/use-logs';
-import { CategoryNav } from '@/features/log/filter-logs/ui/category-nav';
+import { useLogs } from '@/features/goll/fetch-golls/lib/use-golls';
+import { CategoryNav } from '@/features/goll/filter-golls/ui/category-nav';
 import { Header } from '@/widgets/header/ui';
-import { LogFeed } from '@/widgets/log-feed/ui';
+import { LogFeed } from '@/widgets/goll-feed/ui';
 import { Screen } from '@/shared/lib/navigation';
 
 interface MainFeedPageProps {

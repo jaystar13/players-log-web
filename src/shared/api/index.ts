@@ -1,7 +1,7 @@
 import { projectId, publicAnonKey } from '../../../utils/supabase/info';
 import { createClient } from '@supabase/supabase-js';
-import { Log } from '@/entities/log/model/types';
-import { LogFormData } from '@/features/log/create-log-form/model/types';
+import { Log } from '@/entities/goll/model/types';
+import { LogFormData } from '@/features/goll/create-goll-form/model/types';
 
 // --- Supabase Client (Auth) ---
 export const supabase = createClient(
