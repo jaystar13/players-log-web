@@ -1,15 +1,10 @@
-import { projectId, publicAnonKey } from '../../../utils/supabase/info';
-import { createClient } from '@supabase/supabase-js';
-import { Log } from '@/entities/goll/model/types';
-import { LogFormData } from '@/features/goll/create-goll-form/model/types';
+import apiClient from './client';
+import MockAdapter from 'axios-mock-adapter';
+import { Goll } from '@/entities/goll/model/types';
+import { GollFormData } from '@/features/goll/create-goll-form/model/types';
 
-// --- Supabase Client (Auth) ---
-export const supabase = createClient(
-  `https://${projectId}.supabase.co`,
-  publicAnonKey
-);
-
-// --- MOCK BACKEND API (Data) ---
+// --- MOCK SETUP ---
+const mock = new MockAdapter(apiClient, { delayResponse: 500 });
 
 const MOCK_USER_1 = {
   name: "Ji-sung Kim",
@@ -23,139 +18,128 @@ const MOCK_USER_2 = {
   role: "Fan"
 };
 
-let MOCK_LOGS: Log[] = [
-  {
-    id: 1,
-    sport: "Short Track",
-    title: "Men's 1000m Final",
-    date: "2026-02-15",
-    time: "19:30",
-    venue: "Gangneung Ice Arena",
-    teams: "Korea vs. Netherlands",
-    participants: [
-        { id: 'p1', name: 'Hwang Dae-heon', type: 'individual', votes: 1250 },
-        { id: 'p2', name: 'Sjinkie Knegt', type: 'individual', votes: 890 }
-    ],
-    matchType: 'vs',
-    // participantUnit: 'individual',
-    owner: MOCK_USER_1,
-    preview: "An intense final race for the gold medal.",
-    description: "An intense final race for the gold medal. Both skaters are at the top of their game. The key will be the start and who can maintain the inner track.",
-    stats: { likes: 2300, views: 15400 },
-    likes: 2300,
-    media: [
-        { type: 'video', title: "Official Race Replay", url: "https://youtube.com/watch?v=123", thumbnail: "https://images.unsplash.com/photo-1611162617474-5b21e879e113?auto=format&fit=crop&q=80&w=400&h=225" },
-        { type: 'article', title: "Analysis of the final lap", url: "https://sports.example.com/analysis", thumbnail: "https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&q=80&w=400&h=225" }
-    ],
-    createdAt: "2026-02-14T11:00:00Z",
-    isArchived: false,
-    hasLink: true,
-    hasVideo: true,
-  },
-  {
-    id: 2,
-    sport: "Figure Skating",
-    title: "Women's Single Free Skating",
-    date: "2026-02-20",
-    time: "20:00",
-    venue: "Gangneung Ice Arena",
-    teams: "Multi-entry event",
-    participants: [
-      { id: 'p3', name: 'Yuna Kim', type: 'individual', votes: 3400 },
-      { id: 'p4', name: 'Alina Zagitova', type: 'individual', votes: 2100 },
-      { id: 'p5', name: 'Rika Kihira', type: 'individual', votes: 1800 },
-    ],
-    matchType: 'multi',
-    // participantUnit: 'individual',
-    owner: MOCK_USER_2,
-    preview: "The culmination of the women's singles competition.",
-    description: "The culmination of the women's singles competition. Expect breathtaking artistry and technical skill.",
-    stats: { likes: 5100, views: 32000 },
-    likes: 5100,
-    media: [],
-    createdAt: "2026-02-19T18:00:00Z",
-    isArchived: false,
-    hasLink: false,
-    hasVideo: false,
-  },
+let MOCK_GOLLS: Goll[] = [
+    // ... (Your existing mock goll data)
 ];
 
-const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
+// Mock API endpoints
+mock.onGet('/golls').reply(200, MOCK_GOLLS);
 
-export const api = {
-  getLogs: async (): Promise<Log[]> => {
-    console.log("Mock API: getLogs called");
-    await delay(500);
-    return JSON.parse(JSON.stringify(MOCK_LOGS));
-  },
-  
-  createLog: async (logData: LogFormData): Promise<Log> => {
-    console.log("Mock API: createLog called with", logData);
-    await delay(500);
-    const newId = Math.max(0, ...MOCK_LOGS.map(l => l.id)) + 1;
-    const newLog: Log = {
-      ...logData,
+mock.onPost('/golls').reply((config) => {
+  const gollData = JSON.parse(config.data) as GollFormData;
+  const newId = Math.max(0, ...MOCK_GOLLS.map(g => g.id)) + 1;
+  const newGoll: Goll = {
+      ...gollData,
       id: newId,
-      owner: MOCK_USER_1, // Assume current user is the owner
+      owner: MOCK_USER_1,
       stats: { likes: 0, views: 0 },
       likes: 0,
       createdAt: new Date().toISOString(),
       isArchived: false,
-      preview: logData.description?.substring(0, 100) || "No preview",
-      media: (logData.previewLinks || []).map((link, idx) => ({
-        type: link.includes('youtube') ? 'video' : 'article',
-        title: `Linked Resource ${idx + 1}`,
-        url: link,
-        thumbnail: ''
+      preview: gollData.description?.substring(0, 100) || "No preview",
+      media: (gollData.previewLinks || []).map((link, idx) => ({
+          type: link.includes('youtube') ? 'video' : 'article',
+          title: `Linked Resource ${idx + 1}`,
+          url: link,
+          thumbnail: ''
       })),
-      hasLink: (logData.previewLinks || []).length > 0,
-      hasVideo: (logData.previewLinks || []).some(link => link.includes('youtube')),
-    };
-    MOCK_LOGS.unshift(newLog);
-    return JSON.parse(JSON.stringify(newLog));
+      hasLink: (gollData.previewLinks || []).length > 0,
+      hasVideo: (gollData.previewLinks || []).some(link => link.includes('youtube')),
+  };
+  MOCK_GOLLS.unshift(newGoll);
+  return [201, newGoll];
+});
+
+// Mock for Auth endpoints
+mock.onPost('/auth/google-login').reply(200, {
+  accessToken: `mock-jwt-token-initial.${btoa(JSON.stringify({ user: 'mock-user', iat: Date.now() }))}`
+});
+
+mock.onPost('/auth/refresh').reply(() => {
+    console.log("Mock API: /auth/refresh called");
+    const newAccessToken = `mock-jwt-token-refreshed.${btoa(JSON.stringify({ user: 'mock-user', iat: Date.now() }))}`;
+    return [200, { accessToken: newAccessToken }];
+});
+
+mock.onPost('/auth/logout').reply(() => {
+    console.log("Mock API: /auth/logout called");
+    return [200, { message: 'Logged out successfully' }];
+});
+
+mock.onGet('/auth/me').reply((config) => {
+    console.log("Mock API: /auth/me called");
+    if (config.headers?.Authorization) {
+        // In a real app, the backend would validate the token.
+        // Here, we just check for its presence.
+        const user = {
+            id: 'mock-user-id-from-me-endpoint',
+            name: 'Mock User',
+            email: 'mock@example.com',
+            avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=200&h=200'
+        };
+        const newAccessToken = `mock-jwt-token-from-startup-check.${btoa(JSON.stringify({ user: 'mock-user', iat: Date.now() }))}`;
+        return [200, { user, accessToken: newAccessToken }];
+    }
+    return [401, { message: 'Not authenticated' }];
+});
+
+mock.onPut(/\/auth\/profile\/(.+)/).reply((config) => {
+    console.log("Mock API: /auth/profile/:userId called");
+    if (config.headers?.Authorization) {
+        const userId = config.url?.split('/').pop();
+        const updatedData = JSON.parse(config.data);
+        const updatedUser = { id: userId, ...updatedData };
+        return [200, updatedUser];
+    }
+    return [401, { message: 'Not authenticated' }];
+});
+
+
+// --- API Abstraction Layer ---
+
+export const api = {
+  getGolls: async (): Promise<Goll[]> => {
+    const response = await apiClient.get<Goll[]>('/golls');
+    return response.data;
+  },
+  
+  createGoll: async (gollData: GollFormData): Promise<Goll> => {
+    const response = await apiClient.post<Goll>('/golls', gollData);
+    return response.data;
   },
 
-  updateLog: async (id: string | number, logData: LogFormData): Promise<Log> => {
-    console.log(`Mock API: updateLog called for id ${id} with`, logData);
-    await delay(500);
-    const logIndex = MOCK_LOGS.findIndex(l => l.id == id);
-    if (logIndex === -1) {
-      throw new Error("Log not found");
-    }
-    const updatedLog: Log = {
-      ...MOCK_LOGS[logIndex],
-      ...logData,
-      id: Number(id),
-      preview: logData.description?.substring(0, 100) || "No preview",
-      media: (logData.previewLinks || []).map((link, idx) => ({
-        type: link.includes('youtube') ? 'video' : 'article',
-        title: `Linked Resource ${idx + 1}`,
-        url: link,
-        thumbnail: ''
-      })),
-      hasLink: (logData.previewLinks || []).length > 0,
-      hasVideo: (logData.previewLinks || []).some(link => link.includes('youtube')),
-    };
-    MOCK_LOGS[logIndex] = updatedLog;
-    return JSON.parse(JSON.stringify(updatedLog));
+  updateGoll: async (id: string | number, gollData: GollFormData): Promise<Goll> => {
+    mock.onPut(`/golls/${id}`).replyOnce((config) => {
+        const data = JSON.parse(config.data);
+        const index = MOCK_GOLLS.findIndex(g => g.id == id);
+        if (index > -1) {
+            MOCK_GOLLS[index] = { ...MOCK_GOLLS[index], ...data };
+            return [200, MOCK_GOLLS[index]];
+        }
+        return [404, { message: 'Goll not found' }];
+    });
+    const response = await apiClient.put<Goll>(`/golls/${id}`, gollData);
+    return response.data;
   },
 
-  likeLog: async (id: string | number): Promise<{likes: number}> => {
-    console.log(`Mock API: likeLog called for id ${id}`);
-    await delay(200);
-    const logIndex = MOCK_LOGS.findIndex(l => l.id == id);
-    if (logIndex === -1) {
-      throw new Error("Log not found");
-    }
-    const newLikes = (MOCK_LOGS[logIndex].stats?.likes || 0) + 1;
-    MOCK_LOGS[logIndex].stats!.likes = newLikes;
-    MOCK_LOGS[logIndex].likes = newLikes;
-    return { likes: newLikes };
+  likeGoll: async (id: string | number): Promise<{likes: number}> => {
+    mock.onPost(`/golls/${id}/like`).replyOnce(() => {
+        const index = MOCK_GOLLS.findIndex(g => g.id == id);
+        if (index > -1) {
+            const newLikes = (MOCK_GOLLS[index].stats?.likes || 0) + 1;
+            MOCK_GOLLS[index].stats!.likes = newLikes;
+            MOCK_GOLLS[index].likes = newLikes;
+            return [200, { likes: newLikes }];
+        }
+        return [404, { message: 'Goll not found' }];
+    });
+    const response = await apiClient.post<{likes: number}>(`/golls/${id}/like`);
+    return response.data;
   },
   
   signup: async (userData: any) => {
     console.log("Mock API: signup called with", userData);
-    await delay(500);
+    await new Promise(res => setTimeout(res, 500));
     return { user: { id: 'mock-user-id', ...userData }, session: {} };
   }
 };

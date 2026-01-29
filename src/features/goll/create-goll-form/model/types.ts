@@ -4,7 +4,7 @@
 export type ParticipantInput = { id?: string; name: string; type: 'individual' | 'team'; votes: number };
 
 // Type for the form data structure
-export interface LogFormData {
+export interface GollFormData {
   id?: number;
   title: string;
   sport: string;
@@ -32,7 +32,7 @@ export interface LogFormData {
 }
 
 // Type for the initial data passed to the form (can be partial)
-export type InitialLogFormData = Partial<LogFormData>;
+export type InitialGollFormData = Partial<GollFormData>;
 
 // Type for the categories (assuming they are fixed strings)
 export const SPORTS_CATEGORIES = [

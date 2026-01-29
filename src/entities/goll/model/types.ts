@@ -1,4 +1,4 @@
-export interface Log {
+export interface Goll {
   id: number;
   sport: string;
   title: string;

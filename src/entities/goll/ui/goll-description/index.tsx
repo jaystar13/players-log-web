@@ -1,10 +1,10 @@
 import React from 'react';
 
-type LogDescriptionProps = {
+type GollDescriptionProps = {
   description: string;
 };
 
-export const LogDescription = ({ description }: LogDescriptionProps) => {
+export const GollDescription = ({ description }: GollDescriptionProps) => {
   return (
     <div className="prose prose-slate max-w-none">
       <p className="text-lg text-slate-700 leading-relaxed whitespace-pre-line">

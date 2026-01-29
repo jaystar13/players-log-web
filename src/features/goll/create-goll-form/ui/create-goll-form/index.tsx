@@ -21,17 +21,17 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 
 import { cn } from '@/shared/ui/utils'; // Assuming cn utility
-import LogDetailPage from '@/pages/goll-detail/ui';
-import { useCreateLogForm } from '../../lib/use-create-goll-form';
-import { InitialLogFormData } from '../../model/types';
+import GollDetailPage from '@/pages/goll-detail/ui';
+import { useCreateGollForm } from '../../lib/use-create-goll-form';
+import { InitialGollFormData } from '../../model/types';
 
-interface CreateLogFormProps {
-  initialData?: InitialLogFormData;
+interface CreateGollFormProps {
+  initialData?: InitialGollFormData;
   onSubmit: (data: any) => void;
   onBack: () => void;
 }
 
-export const CreateLogForm = ({ initialData, onSubmit, onBack }: CreateLogFormProps) => {
+export const CreateGollForm = ({ initialData, onSubmit, onBack }: CreateGollFormProps) => {
   const {
     isEditMode,
     title, setTitle,
@@ -46,12 +46,12 @@ export const CreateLogForm = ({ initialData, onSubmit, onBack }: CreateLogFormPr
     competitorA, setCompetitorA,
     competitorB, setCompetitorB,
     participants, setNewParticipant, newParticipant, removeParticipant, handleAddParticipant, handleKeyDownParticipant,
-    similarLogs,
+    similarGolls: similarGolls,
     showPreview, setShowPreview,
     getPreviewData,
     getFormDataForSubmit,
     SPORTS_CATEGORIES
-  } = useCreateLogForm(initialData);
+  } = useCreateGollForm(initialData);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,7 +61,7 @@ export const CreateLogForm = ({ initialData, onSubmit, onBack }: CreateLogFormPr
   if (showPreview) {
     return (
       <div className="fixed inset-0 z-50 bg-white overflow-y-auto">
-        <LogDetailPage 
+        <GollDetailPage 
           onBack={() => setShowPreview(false)} 
           previewData={getPreviewData}
         />
@@ -446,11 +446,11 @@ export const CreateLogForm = ({ initialData, onSubmit, onBack }: CreateLogFormPr
 
               <div className="p-4 bg-slate-50/50 min-h-[300px]">
                 <AnimatePresence mode="popLayout">
-                  {similarLogs.length > 0 ? (
+                  {similarGolls.length > 0 ? (
                     <div className="space-y-3">
-                      {similarLogs.map(log => (
+                      {similarGolls.map(goll => (
                         <motion.div 
-                          key={log.id}
+                          key={goll.id}
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, scale: 0.95 }}
@@ -458,19 +458,19 @@ export const CreateLogForm = ({ initialData, onSubmit, onBack }: CreateLogFormPr
                         >
                           <div className="flex justify-between items-start mb-2">
                             <span className="text-[10px] font-bold text-[#1A237E] bg-[#E1F5FE] px-2 py-0.5 rounded">
-                              {log.sport}
+                              {goll.sport}
                             </span>
-                            <span className="text-xs text-slate-400">{log.date}</span>
+                            <span className="text-xs text-slate-400">{goll.date}</span>
                           </div>
                           
-                          <h4 className="font-bold text-slate-800 text-sm mb-1">{log.title}</h4>
+                          <h4 className="font-bold text-slate-800 text-sm mb-1">{goll.title}</h4>
                           
                           <div className="flex items-center gap-1.5 text-xs text-slate-500 mb-3">
                             <User className="w-3 h-3" />
-                            <span>{log.owner?.name || "Unknown"}</span>
+                            <span>{goll.owner?.name || "Unknown"}</span>
                             <span className="mx-1">•</span>
                             <MapPin className="w-3 h-3" />
-                            <span className="truncate max-w-[120px]">{log.venue}</span>
+                            <span className="truncate max-w-[120px]">{goll.venue}</span>
                           </div>
 
                           <button className="w-full py-2 bg-slate-100 hover:bg-[#1A237E] hover:text-white text-slate-600 text-xs font-bold rounded-lg transition-colors flex items-center justify-center gap-2">

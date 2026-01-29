@@ -11,38 +11,45 @@ import {
   Mail,
   Info
 } from 'lucide-react';
-import { supabase } from '@/shared/api';
 import { toast } from 'sonner';
+import { updateUserProfile, UserProfile } from '@/shared/api/auth';
+import { tokenStore } from '@/shared/auth/tokenStore';
 
-export const EditProfileForm = ({ user, onSaveComplete }: { user: any, onSaveComplete: () => void }) => {
+
+export const EditProfileForm = ({ user, onSaveComplete }: { user: UserProfile, onSaveComplete: () => void }) => {
   const [saving, setSaving] = useState(false);
 
   // Form State initialized from props
-  const meta = user.user_metadata || {};
-  const [nickname, setNickname] = useState(meta.nickname || meta.full_name || meta.name || "");
-  const [bio, setBio] = useState(meta.bio || "");
+  const [nickname, setNickname] = useState(user.nickname || user.name || "");
+  const [bio, setBio] = useState(user.bio || "");
   const [socials, setSocials] = useState({
-    instagram: meta.socials?.instagram || "",
-    youtube: meta.socials?.youtube || "",
-    threads: meta.socials?.threads || "",
-    twitter: meta.socials?.twitter || ""
+    instagram: user.socials?.instagram || "",
+    youtube: user.socials?.youtube || "",
+    threads: user.socials?.threads || "",
+    twitter: user.socials?.twitter || ""
   });
-  const avatarUrl = meta.avatar_url || meta.picture || "";
+  const avatarUrl = user.avatar || "";
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
 
     try {
-      const { error } = await supabase.auth.updateUser({
-        data: {
-          nickname,
-          bio,
-          socials
-        }
-      });
+      if (!user.id) {
+        throw new Error("User ID is missing. Cannot update profile.");
+      }
 
-      if (error) throw error;
+      const updatedProfileData: Partial<UserProfile> = {
+        nickname,
+        bio,
+        socials
+      };
+
+      const updatedUser = await updateUserProfile(user.id, updatedProfileData);
+      
+      // Optionally, you might want to refresh the token store or user context here
+      // if the backend returns a new token or updated user object
+      console.log("Profile updated:", updatedUser);
 
       toast.success("Profile updated successfully");
       onSaveComplete();

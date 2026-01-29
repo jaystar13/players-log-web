@@ -4,13 +4,13 @@ import { AlertCircle, Heart } from 'lucide-react';
 import { cn } from '@/shared/ui/utils';
 import { api } from '@/shared/api';
 
-type LikeLogProps = {
-  logId: number;
+type LikeGollProps = {
+  gollId: number;
   initialLikes: number;
   isArchived?: boolean;
 };
 
-export const LikeLog = ({ logId, initialLikes, isArchived }: LikeLogProps) => {
+export const LikeGoll = ({ gollId: gollId, initialLikes, isArchived }: LikeGollProps) => {
   const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(initialLikes);
 
@@ -20,7 +20,7 @@ export const LikeLog = ({ logId, initialLikes, isArchived }: LikeLogProps) => {
     try {
       setIsLiked(true);
       setLikeCount((prev) => prev + 1);
-      await api.likeLog(logId);
+      await api.likeGoll(gollId);
     } catch (error) {
       console.error("Failed to like log:", error);
       // Revert state on error

@@ -1,9 +1,9 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Log } from '@/entities/goll/model/types';
-import { InitialLogFormData, SPORTS_CATEGORIES, MOCK_LOGS } from '../model/types';
-import { fetchExistingLogs } from '../api';
+import { Goll } from '@/entities/goll/model/types';
+import { InitialGollFormData, SPORTS_CATEGORIES, MOCK_LOGS } from '../model/types';
+import { fetchExistingGolls } from '../api';
 
-export const useCreateLogForm = (initialData?: InitialLogFormData) => {
+export const useCreateGollForm = (initialData?: InitialGollFormData) => {
   const isEditMode = !!initialData;
 
   // -- State Initialization --
@@ -30,19 +30,19 @@ export const useCreateLogForm = (initialData?: InitialLogFormData) => {
   const [participants, setParticipants] = useState<string[]>([]);
   const [newParticipant, setNewParticipant] = useState("");
 
-  const [existingAllLogs, setExistingAllLogs] = useState<Log[]>([]); // Renamed to avoid confusion with similarLogs
-  const [similarLogs, setSimilarLogs] = useState<Log[]>([]);
+  const [existingAllGolls, setExistingAllGolls] = useState<Goll[]>([]); // Renamed to avoid confusion with similarLogs
+  const [similarGolls, setSimilarGolls] = useState<Goll[]>([]);
   
   // Preview Mode State
   const [showPreview, setShowPreview] = useState(false);
 
   // -- Effect: Fetch Existing Logs for Duplicate Detection --
   useEffect(() => {
-    const loadExistingLogs = async () => {
-      const logs = await fetchExistingLogs();
-      setExistingAllLogs(logs);
+    const loadExistingGolls = async () => {
+      const golls = await fetchExistingGolls();
+      setExistingAllGolls(golls);
     };
-    loadExistingLogs();
+    loadExistingGolls();
   }, []);
 
   // -- Effect: Load Initial Data (Deep Check) --
@@ -136,23 +136,23 @@ export const useCreateLogForm = (initialData?: InitialLogFormData) => {
   useEffect(() => {
     // Skip if we don't have minimum info
     if (!sport || (!date && title.length < 2)) {
-      setSimilarLogs([]);
+      setSimilarGolls([]);
       return;
     }
 
-    const matches = existingAllLogs.filter(log => {
+    const matches = existingAllGolls.filter(goll => {
       // Don't match with self if editing
-      if (initialData && log.id === initialData.id) return false;
+      if (initialData && goll.id === initialData.id) return false;
 
-      const sportMatch = log.sport === sport;
-      const dateMatch = date ? log.date === date : false;
-      const titleMatch = title.length > 2 && log.title?.toLowerCase().includes(title.toLowerCase());
+      const sportMatch = goll.sport === sport;
+      const dateMatch = date ? goll.date === date : false;
+      const titleMatch = title.length > 2 && goll.title?.toLowerCase().includes(title.toLowerCase());
       
       // Match if: Same Sport AND (Same Date OR Similar Title)
       return sportMatch && (dateMatch || titleMatch);
     });
-    setSimilarLogs(matches);
-  }, [sport, date, title, existingAllLogs, initialData]);
+    setSimilarGolls(matches);
+  }, [sport, date, title, existingAllGolls, initialData]);
 
   const handleAddParticipant = () => {
     if (newParticipant.trim()) {
@@ -245,7 +245,7 @@ export const useCreateLogForm = (initialData?: InitialLogFormData) => {
     competitorB, setCompetitorB,
     participants, setParticipants,
     newParticipant, setNewParticipant,
-    similarLogs,
+    similarGolls: similarGolls,
     showPreview, setShowPreview,
     getTeamsString,
     getPreviewData,

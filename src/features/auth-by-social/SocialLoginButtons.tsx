@@ -1,38 +1,49 @@
 import React from 'react';
-import { supabase } from '@/shared/api'; // Assuming supabase is needed here
-import { Button } from '@/shared/ui/button'; // Re-using the Button component
+import { useGoogleLogin } from '@react-oauth/google';
+import { Button } from '@/shared/ui/button';
+import { loginWithGoogle } from '@/shared/api/auth';
+import { tokenStore } from '@/shared/auth/tokenStore';
 
 interface SocialLoginButtonsProps {
   onLoginSuccess: () => void;
 }
 
 export default function SocialLoginButtons({ onLoginSuccess }: SocialLoginButtonsProps) {
-  const handleSocialLogin = async (provider: 'google' | 'apple' | 'facebook') => {
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider,
-        options: {
-          redirectTo: window.location.origin, // Redirect back to this page
-        },
-      });
-      if (error) throw error;
-    } catch (error: any) {
-      console.error('Login error:', error.message);
-      alert(`Login failed: ${error.message}`);
-    }
-  };
+  const googleLogin = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      try {
+        const { accessToken } = await loginWithGoogle(tokenResponse.access_token);
+        
+        tokenStore.set(accessToken);
+        
+        onLoginSuccess();
+        
+      } catch (error) {
+        console.error('Login failed:', error);
+        alert('Google login failed. Please try again.');
+      }
+    },
+    onError: () => {
+      console.error('Login Failed');
+      alert('Google login failed. Please try again.');
+    },
+  });
 
+  // These are kept for other social providers, but can be removed if not needed.
+  const handleOtherSocialLogin = async (provider: 'apple' | 'facebook') => {
+    alert(`Login with ${provider} is not implemented yet.`);
+  };
+  
   const handleDemoLogin = () => {
     onLoginSuccess();
   };
 
   return (
     <>
-      {/* Social Login Buttons */}
       <div className="space-y-4">
         {/* Google */}
         <Button
-          onClick={() => handleSocialLogin('google')}
+          onClick={() => googleLogin()}
           className="h-auto w-full flex items-center justify-center gap-3 bg-white hover:bg-gray-50 text-slate-700 font-bold py-3.5 px-4 rounded-xl transition-all active:scale-95 shadow-md group"
         >
           <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -46,10 +57,10 @@ export default function SocialLoginButtons({ onLoginSuccess }: SocialLoginButton
 
         {/* Apple */}
         <Button
-          onClick={() => handleSocialLogin('apple')}
+          onClick={() => handleOtherSocialLogin('apple')}
           className="h-auto w-full flex items-center justify-center gap-3 bg-black hover:bg-gray-900 text-white font-bold py-3.5 px-4 rounded-xl transition-all active:scale-95 shadow-md"
         >
-          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+           <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
             <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.74 1.18 0 2.45-1.02 3.65-1.02 1.35.05 2.29.74 3.08.74.88 0 1.62-.22 2.38-.64 1.35-.74 2.85-1.08 4.35-1.08.74 0 1.48.22 2.22.64.98.54 1.76 1.33 2.36 2.26-2.65 1.65-2.2 4.7 1.25 5.92-.74 1.94-1.92 3.76-3.14 5.28-.7 1.05-1.41 1.57-2.18 1.57-.04.02-.09.02-.15.02zM12.03 7.25c-.15-2.23 1.59-4.08 3.56-4.25.2.22.4.45.6.68.2.23.4.46.6.69.15 2.23-1.59 4.08-3.56 4.25-.2-.22-.4-.45-.6-.68-.2-.23-.4-.46-.6-.69z" />
             </svg>
             Continue with Apple
@@ -57,7 +68,7 @@ export default function SocialLoginButtons({ onLoginSuccess }: SocialLoginButton
 
         {/* Meta */}
         <Button
-          onClick={() => handleSocialLogin('facebook')}
+          onClick={() => handleOtherSocialLogin('facebook')}
           className="h-auto w-full flex items-center justify-center gap-3 bg-[#1877F2] hover:bg-[#166fe5] text-white font-bold py-3.5 px-4 rounded-xl transition-all active:scale-95 shadow-md"
         >
           <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
@@ -66,19 +77,17 @@ export default function SocialLoginButtons({ onLoginSuccess }: SocialLoginButton
           Continue with Meta
         </Button>
       </div>
-
       <div className="mt-8 pt-6 border-t border-white/10 text-center">
-         <p className="text-xs text-blue-100/60">
-           By continuing, you agree to our Terms of Service and Privacy Policy.
-         </p>
-         {/* Hidden Demo Link for Convenience */}
-         <Button 
-           onClick={handleDemoLogin}
-           variant="link"
-           className="mt-4 text-[10px] text-white/30 hover:text-white/50 underline"
-         >
-           Skip to Demo (Development Only)
-         </Button>
+        <p className="text-xs text-blue-100/60">
+          By continuing, you agree to our Terms of Service and Privacy Policy.
+        </p>
+        <Button
+          onClick={handleDemoLogin}
+          variant="link"
+          className="mt-4 text-[10px] text-white/30 hover:text-white/50 underline"
+        >
+          Skip to Demo (Development Only)
+        </Button>
       </div>
     </>
   );

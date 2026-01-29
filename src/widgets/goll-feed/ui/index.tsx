@@ -1,18 +1,18 @@
 import { Loader2, Search } from 'lucide-react';
 
-import { Log } from '@/entities/goll/model/types';
-import { MatchLogCard } from '@/entities/goll/ui/goll-card';
+import { Goll } from '@/entities/goll/model/types';
+import { MatchGollCard } from '@/entities/goll/ui/goll-card';
 import { Screen } from '@/shared/lib/navigation';
 
-interface LogFeedProps {
-  logs: Log[];
+interface GollFeedProps {
+  golls: Goll[];
   isLoading: boolean;
   activeCategory: string;
-  onLogClick: (id: number) => void;
+  onGollClick: (id: number) => void;
   onNavigate: (screen: Screen) => void;
 }
 
-export const LogFeed = ({ logs, isLoading, activeCategory, onLogClick, onNavigate }: LogFeedProps) => {
+export const GollFeed = ({ golls, isLoading, activeCategory, onGollClick, onNavigate }: GollFeedProps) => {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center py-20">
@@ -21,7 +21,7 @@ export const LogFeed = ({ logs, isLoading, activeCategory, onLogClick, onNavigat
     );
   }
 
-  if (logs.length === 0) {
+  if (golls.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-32 text-slate-400 bg-white rounded-2xl border border-dashed border-slate-300">
         <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4">
@@ -41,8 +41,8 @@ export const LogFeed = ({ logs, isLoading, activeCategory, onLogClick, onNavigat
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-      {logs.map(log => (
-        <MatchLogCard key={log.id} log={log} onClick={onLogClick} />
+      {golls.map(goll => (
+        <MatchGollCard key={goll.id} goll={goll} onClick={onGollClick} />
       ))}
     </div>
   );

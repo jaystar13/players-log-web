@@ -1,11 +1,11 @@
-import { Log } from '@/entities/goll/model/types';
+import { Goll } from '@/entities/goll/model/types';
 import React from 'react';
 
-type LogOwnerProps = {
-  owner: Log['owner'];
+type GollOwnerProps = {
+  owner?: Goll['owner'];
 };
 
-export const LogOwner = ({ owner }: LogOwnerProps) => {
+export const GollOwner = ({ owner }: GollOwnerProps) => {
   return (
     <div className="flex items-center gap-4 bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
       <img 

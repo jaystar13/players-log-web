@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, Loader2 } from 'lucide-react';
-import { supabase } from '@/shared/api';
 import { toast } from 'sonner';
 import { EditProfileForm } from '@/features/edit-profile/ui';
+import { checkAuthStatus, UserProfile } from '@/shared/api/auth';
+import { tokenStore } from '@/shared/auth/tokenStore';
 
 interface EditProfilePageProps {
   onBack: () => void;
@@ -11,14 +12,15 @@ interface EditProfilePageProps {
 
 export default function EditProfilePage({ onBack, onSaveComplete }: EditProfilePageProps) {
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<UserProfile | null>(null);
 
   useEffect(() => {
     async function fetchUser() {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          setUser(user);
+        const { user: currentUser, accessToken } = await checkAuthStatus();
+        if (currentUser) {
+          setUser(currentUser);
+          tokenStore.set(accessToken); // Ensure token is fresh after check
         } else {
           toast.warning("Could not find user session. Please log in.");
           onBack(); // Go back if no user
@@ -26,6 +28,7 @@ export default function EditProfilePage({ onBack, onSaveComplete }: EditProfileP
       } catch (error) {
         console.error("Error fetching user:", error);
         toast.error("Failed to load profile");
+        onBack(); // Go back on error
       } finally {
         setLoading(false);
       }

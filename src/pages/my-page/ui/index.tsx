@@ -1,11 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Loader2, LogOut, ChevronLeft } from 'lucide-react';
-import { api, supabase } from '@/shared/api';
+import { api } from '@/shared/api';
 import { MyPageSidebar } from '@/widgets/my-page-sidebar/ui';
-import { MyLogList } from '@/widgets/my-goll-list/ui';
+import { MyGollList } from '@/widgets/my-goll-list/ui';
 import { Screen } from '@/shared/lib/navigation';
 import EditProfilePage from '@/pages/edit-profile/ui';
-import { Log } from '@/entities/goll/model/types';
+import { Goll } from '@/entities/goll/model/types';
+import { logout } from '@/shared/api/auth';
+import { tokenStore } from '@/shared/auth/tokenStore';
 
 interface MyPageProps {
   onBack: () => void;
@@ -14,36 +16,35 @@ interface MyPageProps {
 
 export default function MyPage({ onBack, onNavigate }: MyPageProps) {
   const [activeTab, setActiveTab] = useState<'created' | 'liked'>('created');
-  const [allLogs, setAllLogs] = useState<Log[]>([]);
+  const [allGolls, setAllGolls] = useState<Goll[]>([]);
   const [loading, setLoading] = useState(true);
   
-  const [userProfile, setUserProfile] = useState<any>(null);
+  const [userProfile, setUserProfile] = useState<any>(null); // In a real app, this would come from a user context/store
   const [showEditProfile, setShowEditProfile] = useState(false);
 
   const fetchData = async () => {
     try {
       setLoading(true);
-      const logsData = await api.getLogs();
-      if (logsData) {
-        setAllLogs(logsData);
+      // In a real app, you'd have specific endpoints for user's created/liked golls
+      const gollsData = await api.getGolls(); 
+      if (gollsData) {
+        setAllGolls(gollsData);
       }
 
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const meta = user.user_metadata || {};
-        setUserProfile({
-          name: meta.nickname || meta.full_name || meta.name || "User",
-          username: user.email?.split('@')[0] ? `@${user.email.split('@')[0]}` : "@username",
-          role: meta.bio || "Winter Sports Enthusiast",
-          avatar: meta.avatar_url || meta.picture || "https://images.unsplash.com/photo-1599566150163-29194dcaad36?auto=format&fit=crop&q=80&w=200&h=200",
-          socials: meta.socials || {},
-          stats: {
-            created: logsData ? logsData.length : 0, // Placeholder
-            liked: 0, // Placeholder
-            cheers: 0 // Placeholder
-          }
-        });
-      }
+      // In a real app, user profile would be fetched from your own backend
+      // after login and stored in a global state.
+      setUserProfile({
+        name: "Mock User",
+        username: "@mock_user",
+        role: "Player-Log Enthusiast",
+        avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=200&h=200",
+        socials: {},
+        stats: {
+          created: gollsData ? gollsData.length : 0,
+          liked: 0,
+          cheers: 0
+        }
+      });
     } catch (error) {
       console.error("Failed to fetch data:", error);
     } finally {
@@ -56,8 +57,14 @@ export default function MyPage({ onBack, onNavigate }: MyPageProps) {
   }, []);
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    window.location.reload();
+    try {
+      await logout(); // Call backend to invalidate session/cookie
+    } catch (error) {
+      console.error("Failed to sign out from backend", error);
+    } finally {
+      tokenStore.clear(); // Clear token from frontend
+      onNavigate('login'); // Navigate to login screen
+    }
   };
   
   const onNavigateToDetail = (id: number) => {
@@ -113,8 +120,8 @@ export default function MyPage({ onBack, onNavigate }: MyPageProps) {
               setActiveTab={setActiveTab}
               onEditClick={() => setShowEditProfile(true)}
             />
-            <MyLogList
-              logs={allLogs} // Simplified: In a real app, you'd fetch liked logs separately
+            <MyGollList
+              golls={allGolls} // Simplified: In a real app, you'd fetch liked golls separately
               activeTab={activeTab}
               loading={loading}
               onNavigateToDetail={onNavigateToDetail}

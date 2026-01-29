@@ -2,24 +2,24 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Plus } from 'lucide-react';
 
-import { useLogs } from '@/features/goll/fetch-golls/lib/use-golls';
+import { useGolls } from '@/features/goll/fetch-golls/lib/use-golls';
 import { CategoryNav } from '@/features/goll/filter-golls/ui/category-nav';
 import { Header } from '@/widgets/header/ui';
-import { LogFeed } from '@/widgets/goll-feed/ui';
+import { GollFeed } from '@/widgets/goll-feed/ui';
 import { Screen } from '@/shared/lib/navigation';
 
 interface MainFeedPageProps {
   onNavigate: (screen: Screen, params?: any) => void;
-  onLogClick: (id: number) => void;
+  onGollClick: (id: number) => void;
 }
 
-export default function MainFeedPage({ onNavigate, onLogClick }: MainFeedPageProps) {
+export default function MainFeedPage({ onNavigate, onGollClick }: MainFeedPageProps) {
   const [activeCategory, setActiveCategory] = useState("All");
-  const { logs, loading: isLoading, error } = useLogs();
+  const { golls: golls, loading: isLoading, error } = useGolls();
 
-  const filteredLogs = activeCategory === "All" 
-    ? logs 
-    : logs.filter(log => log.sport === activeCategory);
+  const filteredGolls = activeCategory === "All" 
+    ? golls 
+    : golls.filter(goll => goll.sport === activeCategory);
 
   // You could handle the error state here, e.g. show a toast or an error message
   if (error) {
@@ -38,15 +38,15 @@ export default function MainFeedPage({ onNavigate, onLogClick }: MainFeedPagePro
             {activeCategory === "All" ? "Recent Match Logs" : `${activeCategory} Logs`}
           </h2>
           <span className="text-sm text-slate-500">
-            {isLoading ? "Loading..." : `Showing ${filteredLogs.length} results`}
+            {isLoading ? "Loading..." : `Showing ${filteredGolls.length} results`}
           </span>
         </div>
 
-        <LogFeed 
-          logs={filteredLogs}
+        <GollFeed 
+          golls={filteredGolls}
           isLoading={isLoading}
           activeCategory={activeCategory}
-          onLogClick={onLogClick}
+          onGollClick={onGollClick}
           onNavigate={onNavigate}
         />
       </main>

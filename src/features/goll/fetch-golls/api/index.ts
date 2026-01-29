@@ -1,12 +1,12 @@
 import { api } from '@/shared/api';
-import { Log } from '@/entities/goll/model/types';
+import { Goll } from '@/entities/goll/model/types';
 
-export const getLogs = async (): Promise<Log[]> => {
+export const getGolls = async (): Promise<Goll[]> => {
   try {
-    const data = await api.getLogs();
+    const data = await api.getGolls();
     if (data && data.length > 0) {
       // Transform backend data to UI format if needed
-      const formattedLogs = data.map((item: any) => ({
+      const formattedGolls = data.map((item: any) => ({
         ...item,
         // Ensure compatibility with existing fields
         preview: item.description || item.preview,
@@ -17,7 +17,7 @@ export const getLogs = async (): Promise<Log[]> => {
           avatar: "https://images.unsplash.com/photo-1599566150163-29194dcaad36?auto=format&fit=crop&q=80&w=100&h=100"
         }
       }));
-      return formattedLogs;
+      return formattedGolls;
     }
     return [];
   } catch (error) {

@@ -1,56 +1,56 @@
 import React, { useState, useEffect } from 'react';
 import { Toaster } from 'sonner';
 import MainFeedPage from '@/pages/main-feed';
-import CreateLogPage from '@/pages/create-goll'; // New import
-import EditLogPage from '@/pages/edit-goll'; // New import
-import LogDetailPage from '@/pages/goll-detail/ui';
+import CreateGollPage from '@/pages/create-goll';
+import EditGollPage from '@/pages/edit-goll';
+import GollDetailPage from '@/pages/goll-detail/ui';
 import MyPage from '@/pages/my-page/ui';
 import LoginPage from '@/pages/login-page';
-import { api, supabase } from '@/shared/api';
-import { Screen } from '@/shared/lib/navigation'; // New import
+import { Screen } from '@/shared/lib/navigation';
 import { GoogleOAuthProvider } from '@react-oauth/google';
+import { checkAuthStatus } from '@/shared/api/auth';
+import { tokenStore } from '@/shared/auth/tokenStore';
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState<Screen>('login');
-  const [selectedLogId, setSelectedLogId] = useState<number | undefined>(undefined);
-  const [editingLog, setEditingLog] = useState<any>(null);
+  const [selectedGollId, setSelectedGollId] = useState<number | undefined>(undefined);
+  const [editingGoll, setEditingGoll] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Check for existing session
+  // Check for existing session on app startup
   useEffect(() => {
-    const checkSession = async () => {
+    const verifySession = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
-          setCurrentScreen('feed');
-        }
+        // This call will succeed if the HttpOnly refresh token cookie is valid
+        const { accessToken, user } = await checkAuthStatus();
+        tokenStore.set(accessToken);
+        console.log("Session verified, user:", user);
+        setCurrentScreen('feed');
       } catch (e) {
-        console.error("Session check failed", e);
+        console.log("No active session found.");
+        // Stay on the login screen
       } finally {
         setIsLoading(false);
       }
     };
 
-    checkSession();
+    verifySession();
   }, []);
 
   const navigateTo = (screen: Screen, params?: any) => {
     if (screen === 'detail' && params?.id) {
-      setSelectedLogId(params.id);
+      setSelectedGollId(params.id);
     }
     setCurrentScreen(screen);
     window.scrollTo(0, 0);
   };
 
-  // handleRegister and handleUpdate are now handled internally by CreateLogPage/EditLogPage
-  // so they are removed from App.tsx
-
-  const handleEditClick = (logData: any) => {
-    setEditingLog(logData);
+  const handleEditClick = (gollData: any) => {
+    setEditingGoll(gollData);
     setCurrentScreen('edit');
   };
 
-  const handleLogClick = (id: number) => {
+  const handleGollClick = (id: number) => {
     navigateTo('detail', { id });
   };
 
@@ -76,28 +76,28 @@ export default function App() {
       )}
 
       {currentScreen === 'feed' && (
-        <MainFeedPage onNavigate={navigateTo} onLogClick={handleLogClick} />
+        <MainFeedPage onNavigate={navigateTo} onGollClick={handleGollClick} />
       )}
       
       {currentScreen === 'create' && (
-        <CreateLogPage 
+        <CreateGollPage 
           onBack={() => navigateTo('feed')} 
           onNavigate={navigateTo}
         />
       )}
 
       {currentScreen === 'edit' && (
-        <EditLogPage 
-          onBack={() => navigateTo('detail', { id: editingLog?.id })} 
+        <EditGollPage 
+          onBack={() => navigateTo('detail', { id: editingGoll?.id })} 
           onNavigate={navigateTo}
-          initialData={editingLog}
+          initialData={editingGoll}
         />
       )}
 
       {currentScreen === 'detail' && (
-        <LogDetailPage 
+        <GollDetailPage 
           onBack={() => navigateTo('feed')} 
-          logId={selectedLogId}
+          gollId={selectedGollId}
           onEdit={handleEditClick}
         />
       )}

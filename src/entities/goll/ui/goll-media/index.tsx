@@ -1,12 +1,12 @@
-import { Log } from '@/entities/goll/model/types';
+import { Goll } from '@/entities/goll/model/types';
 import { ExternalLink, Link as LinkIcon, Video } from 'lucide-react';
 import React from 'react';
 
-type LogMediaProps = {
-  media: Log['media'];
+type GollMediaProps = {
+  media: Goll['media'];
 };
 
-export const LogMedia = ({ media }: LogMediaProps) => {
+export const GollMedia = ({ media }: GollMediaProps) => {
   if (!media || media.length === 0) {
     return null;
   }

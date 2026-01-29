@@ -1,7 +1,7 @@
 import { api } from '@/shared/api';
-import { Log } from '@/entities/goll/model/types'; // Assuming Log type is consistent
+import { Goll } from '@/entities/goll/model/types'; // Assuming Log type is consistent
 
-interface LogFormData {
+interface GollFormData {
   id?: number;
   title: string;
   sport: string;
@@ -27,33 +27,33 @@ interface LogFormData {
   isArchived?: boolean;
 }
 
-export const createLog = async (data: LogFormData): Promise<Log> => {
+export const createGoll = async (data: GollFormData): Promise<Goll> => {
   // api.createLog likely expects a structure similar to Log,
   // but we'll strip out any derived/UI-only fields if necessary
-  const logToCreate = {
+  const gollToCreate = {
     ...data,
     // Ensure `id` is not sent for creation
     id: undefined, 
     // Additional fields that might be handled by backend
   };
-  const createdLog = await api.createLog(logToCreate);
-  return createdLog;
+  const createdGoll = await api.createGoll(gollToCreate);
+  return createdGoll;
 };
 
-export const updateLog = async (id: number, data: LogFormData): Promise<Log> => {
-  const logToUpdate = {
+export const updateGoll = async (id: number, data: GollFormData): Promise<Goll> => {
+  const gollToUpdate = {
     ...data,
     id: id, // Ensure ID is present for update
   };
-  const updatedLog = await api.updateLog(id, logToUpdate);
-  return updatedLog;
+  const updatedGoll = await api.updateGoll(id, gollToUpdate);
+  return updatedGoll;
 };
 
-export const fetchExistingLogs = async (): Promise<Log[]> => {
+export const fetchExistingGolls = async (): Promise<Goll[]> => {
   try {
-    const logs = await api.getLogs();
-    if (Array.isArray(logs)) {
-      return logs;
+    const golls = await api.getGolls();
+    if (Array.isArray(golls)) {
+      return golls;
     }
     // Fallback Mock, consider removing this in production
     return [
@@ -61,7 +61,7 @@ export const fetchExistingLogs = async (): Promise<Log[]> => {
         id: 101, 
         title: "Men's 1000m Qualifier", 
         sport: "Short Track",
-        author: "Official_KR", 
+        // author: "Official_KR", 
         date: "2026-01-20", 
         venue: "Ice Arena A",
         teams: "Team A vs Team B",
@@ -80,7 +80,7 @@ export const fetchExistingLogs = async (): Promise<Log[]> => {
         id: 101, 
         title: "Men's 1000m Qualifier", 
         sport: "Short Track",
-        author: "Official_KR", 
+        // author: "Official_KR", 
         date: "2026-01-20", 
         venue: "Ice Arena A",
         teams: "Team A vs Team B",

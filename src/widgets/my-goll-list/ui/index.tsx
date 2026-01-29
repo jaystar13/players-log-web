@@ -1,40 +1,40 @@
 import React, { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Loader2, Search } from 'lucide-react';
-import { LogFilter } from '@/features/filter-my-golls/ui';
-import { MyLogListItem } from '@/entities/goll/ui/my-goll-list-item';
-import { Log } from '@/entities/goll/model/types';
+import { GollFilter } from '@/features/filter-my-golls/ui';
+import { MyGollListItem } from '@/entities/goll/ui/my-goll-list-item';
+import { Goll } from '@/entities/goll/model/types';
 
-interface MyLogListProps {
-  logs: Log[];
+interface MyGollListProps {
+  golls: Goll[];
   activeTab: 'created' | 'liked';
   loading: boolean;
   onNavigateToDetail: (id: number) => void;
 }
 
-export const MyLogList = ({ logs, activeTab, loading, onNavigateToDetail }: MyLogListProps) => {
+export const MyGollList = ({ golls: golls, activeTab, loading, onNavigateToDetail }: MyGollListProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSport, setSelectedSport] = useState<string | null>(null);
 
-  const getFilteredLogs = () => {
-    return logs.filter((log) => {
+  const getFilteredGolls = () => {
+    return golls.filter((goll) => {
       const matchesSearch = 
-        (log.title && log.title.toLowerCase().includes(searchQuery.toLowerCase())) ||
-        (log.teams && log.teams.toLowerCase().includes(searchQuery.toLowerCase())) ||
-        (log.sport && log.sport.toLowerCase().includes(searchQuery.toLowerCase()));
+        (goll.title && goll.title.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (goll.teams && goll.teams.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (goll.sport && goll.sport.toLowerCase().includes(searchQuery.toLowerCase()));
 
-      const matchesSport = selectedSport ? log.sport === selectedSport : true;
+      const matchesSport = selectedSport ? goll.sport === selectedSport : true;
 
       return matchesSearch && matchesSport;
     });
   };
 
-  const filteredLogs = getFilteredLogs();
-  const allSports = Array.from(new Set(logs.map((l) => l.sport))).filter(Boolean);
+  const filteredGolls = getFilteredGolls();
+  const allSports = Array.from(new Set(golls.map((l) => l.sport))).filter(Boolean);
 
   return (
     <section className="lg:col-span-9 space-y-6">
-      <LogFilter
+      <GollFilter
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         selectedSport={selectedSport}
@@ -45,7 +45,7 @@ export const MyLogList = ({ logs, activeTab, loading, onNavigateToDetail }: MyLo
       <div className="flex items-center justify-between px-2">
         <h2 className="text-lg font-bold text-slate-800">
           {activeTab === 'created' ? "My Created Logs" : "Liked Logs"}
-          <span className="ml-2 text-sm font-normal text-slate-400">({filteredLogs.length})</span>
+          <span className="ml-2 text-sm font-normal text-slate-400">({filteredGolls.length})</span>
         </h2>
       </div>
 
@@ -55,11 +55,11 @@ export const MyLogList = ({ logs, activeTab, loading, onNavigateToDetail }: MyLo
             <div className="flex justify-center items-center py-20">
               <Loader2 className="w-8 h-8 animate-spin text-[#1A237E]" />
             </div>
-          ) : filteredLogs.length > 0 ? (
-            filteredLogs.map((log) => (
-              <MyLogListItem
-                key={log.id}
-                log={log}
+          ) : filteredGolls.length > 0 ? (
+            filteredGolls.map((goll) => (
+              <MyGollListItem
+                key={goll.id}
+                goll={goll}
                 activeTab={activeTab}
                 onNavigateToDetail={onNavigateToDetail}
               />

@@ -1,15 +1,15 @@
-import { Log } from '@/entities/goll/model/types';
+import { Goll } from '@/entities/goll/model/types';
 import { cn } from '@/shared/ui/utils';
 import { motion } from 'framer-motion';
 import { Shield, Sparkles, ThumbsUp, Trophy, User } from 'lucide-react';
 import React, { useState } from 'react';
 
 type VoteForParticipantProps = {
-  log: Partial<Log>;
+  goll: Partial<Goll>;
 };
 
-export const VoteForParticipant = ({ log }: VoteForParticipantProps) => {
-  const { matchType, participants: initialParticipants, isArchived } = log;
+export const VoteForParticipant = ({ goll: goll }: VoteForParticipantProps) => {
+  const { matchType, participants: initialParticipants, isArchived } = goll;
   
   const [participants, setParticipants] = useState(initialParticipants || []);
   const [votedParticipantId, setVotedParticipantId] = useState<string | null>(null);

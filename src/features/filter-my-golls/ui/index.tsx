@@ -2,7 +2,7 @@ import React from 'react';
 import { Search, Filter } from 'lucide-react';
 import { cn } from '@/shared/ui/utils';
 
-interface LogFilterProps {
+interface GollFilterProps {
   searchQuery: string;
   setSearchQuery: (query: string) => void;
   selectedSport: string | null;
@@ -10,13 +10,13 @@ interface LogFilterProps {
   allSports: string[];
 }
 
-export const LogFilter = ({
+export const GollFilter = ({
   searchQuery,
   setSearchQuery,
   selectedSport,
   setSelectedSport,
   allSports
-}: LogFilterProps) => {
+}: GollFilterProps) => {
   return (
     <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm space-y-4">
       <div className="relative">

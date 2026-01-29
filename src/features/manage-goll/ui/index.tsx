@@ -1,19 +1,19 @@
-import { Log } from '@/entities/goll/model/types';
+import { Goll } from '@/entities/goll/model/types';
 import { cn } from '@/shared/ui/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MoreVertical, Edit, Archive, EyeOff, Eye, AlertCircle, Flag } from 'lucide-react';
 import React, { useState } from 'react';
 
-type ManageLogProps = {
-  log: Partial<Log>;
-  onEdit: (log: Log) => void;
+type ManageGollProps = {
+  goll: Partial<Goll>;
+  onEdit: (goll: Goll) => void;
   // In a real app, these would trigger API calls via a hook
   onArchive: (isArchived: boolean) => void; 
   onDelete: () => void;
   onReport: () => void;
 };
 
-export const ManageLog = ({ log, onEdit, onArchive, onDelete, onReport }: ManageLogProps) => {
+export const ManageGoll = ({ goll, onEdit, onArchive, onDelete, onReport }: ManageGollProps) => {
   const [showMenu, setShowMenu] = useState(false);
   
   // In a real app, this would come from an auth context
@@ -21,14 +21,14 @@ export const ManageLog = ({ log, onEdit, onArchive, onDelete, onReport }: Manage
 
   const handleEdit = () => {
     setShowMenu(false);
-    if (log.id !== undefined) {
-      onEdit(log as Log);
+    if (goll.id !== undefined) {
+      onEdit(goll as Goll);
     }
   };
 
   const handleArchive = () => {
     setShowMenu(false);
-    onArchive(!log.isArchived);
+    onArchive(!goll.isArchived);
   };
   
   const handleDelete = () => {
@@ -76,7 +76,7 @@ export const ManageLog = ({ log, onEdit, onArchive, onDelete, onReport }: Manage
                   onClick={handleArchive}
                   className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 rounded-lg transition-colors text-left"
                 >
-                  {log.isArchived ? (
+                  {goll.isArchived ? (
                     <>
                       <Eye className="w-4 h-4 text-slate-400" />
                       Unarchive Log

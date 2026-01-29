@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Log } from '@/entities/goll/model/types';
-import { getLogs } from '../api';
+import { Goll } from '@/entities/goll/model/types';
+import { getGolls } from '../api';
 
-export const useLogs = () => {
-  const [logs, setLogs] = useState<Log[]>([]);
+export const useGolls = () => {
+  const [golls, setGolls] = useState<Goll[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
@@ -12,8 +12,8 @@ export const useLogs = () => {
       try {
         setLoading(true);
         setError(null);
-        const data = await getLogs();
-        setLogs(data);
+        const data = await getGolls();
+        setGolls(data);
       } catch (e) {
         setError(e as Error);
       } finally {
@@ -24,5 +24,5 @@ export const useLogs = () => {
     fetch();
   }, []);
 
-  return { logs, loading, error };
+  return { golls: golls, loading, error };
 };

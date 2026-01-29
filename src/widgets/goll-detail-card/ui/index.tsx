@@ -1,29 +1,29 @@
 import React from 'react';
-import { Log } from '@/entities/goll/model/types';
-import { LogHeader } from '@/entities/goll/ui/goll-header';
-import { LogOwner } from '@/entities/goll/ui/goll-owner';
-import { LogDescription } from '@/entities/goll/ui/goll-description';
-import { LogMedia } from '@/entities/goll/ui/goll-media';
+import { Goll } from '@/entities/goll/model/types';
+import { GollHeader } from '@/entities/goll/ui/goll-header';
+import { GollOwner } from '@/entities/goll/ui/goll-owner';
+import { GollDescription } from '@/entities/goll/ui/goll-description';
+import { GollMedia } from '@/entities/goll/ui/goll-media';
 import { VoteForParticipant } from '@/features/vote-for-participant/ui';
 
-interface LogDetailCardProps {
-  log: Partial<Log>;
+interface GollDetailCardProps {
+  goll: Partial<Goll>;
 }
 
-export const LogDetailCard = ({ log }: LogDetailCardProps) => {
+export const GollDetailCard = ({ goll }: GollDetailCardProps) => {
   return (
     <article className="space-y-8">
-      <LogHeader log={log} />
+      <GollHeader goll={goll} />
       
-      <VoteForParticipant log={log} />
+      <VoteForParticipant goll={goll} />
 
       <div className="border-b border-slate-200" />
 
-      <LogOwner owner={log.owner} />
+      <GollOwner owner={goll.owner} />
 
-      <LogDescription description={log.description || ''} />
+      <GollDescription description={goll.description || ''} />
 
-      <LogMedia media={log.media} />
+      <GollMedia media={goll.media} />
     </article>
   );
 };

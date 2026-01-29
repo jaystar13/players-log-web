@@ -1,19 +1,19 @@
-import { LikeLog } from '@/features/like-goll/ui';
-import { Log } from '@/entities/goll/model/types';
+import { LikeGoll } from '@/features/like-goll/ui';
+import { Goll } from '@/entities/goll/model/types';
 import React from 'react';
 
-interface LogInteractionSidebarProps {
-  log: Partial<Log>;
+interface GollInteractionSidebarProps {
+  goll: Partial<Goll>;
 }
 
-export const LogInteractionSidebar = ({ log }: LogInteractionSidebarProps) => {
+export const GollInteractionSidebar = ({ goll: goll }: GollInteractionSidebarProps) => {
   return (
     <aside className="lg:col-span-4 space-y-6">
       <div className="sticky top-24">
-        <LikeLog 
-          logId={log.id!}
-          initialLikes={log.stats?.likes || 0}
-          isArchived={log.isArchived}
+        <LikeGoll 
+          gollId={goll.id!}
+          initialLikes={goll.stats?.likes || 0}
+          isArchived={goll.isArchived}
         />
         {/* Other interaction elements can be added here in the future */}
       </div>

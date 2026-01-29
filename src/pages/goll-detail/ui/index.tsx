@@ -2,14 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { Loader2, ChevronLeft, Share2 } from 'lucide-react';
 import { AnimatePresence } from 'framer-motion';
 
-import { Log } from '@/entities/goll/model/types';
+import { Goll } from '@/entities/goll/model/types';
 import { api } from '@/shared/api';
-import { LogDetailCard } from '@/widgets/goll-detail-card/ui';
-import { LogInteractionSidebar } from '@/widgets/goll-interaction-sidebar/ui';
-import { ManageLog } from '@/features/manage-goll/ui';
+import { GollDetailCard } from '@/widgets/goll-detail-card/ui';
+import { GollInteractionSidebar } from '@/widgets/goll-interaction-sidebar/ui';
+import { ManageGoll } from '@/features/manage-goll/ui';
 
 // Fallback data
-const DEFAULT_LOG_DATA: Partial<Log> = {
+const DEFAULT_LOG_DATA: Partial<Goll> = {
   id: 0,
   sport: "Unknown",
   title: "Log Not Found",
@@ -25,20 +25,20 @@ const DEFAULT_LOG_DATA: Partial<Log> = {
   media: [],
 };
 
-interface LogDetailPageProps {
+interface GollDetailPageProps {
   onBack: () => void;
-  logId?: number | string;
-  previewData?: Partial<Log>;
-  onEdit?: (logData: Log) => void;
+  gollId?: number | string;
+  previewData?: Partial<Goll>;
+  onEdit?: (gollData: Goll) => void;
 }
 
-export default function LogDetailPage({ onBack, logId, previewData, onEdit = () => {} }: LogDetailPageProps) {
-  const [log, setLog] = useState<Partial<Log> | null>(previewData || null);
+export default function GollDetailPage({ onBack, gollId: gollId, previewData, onEdit = () => {} }: GollDetailPageProps) {
+  const [goll, setGoll] = useState<Partial<Goll> | null>(previewData || null);
   const [loading, setLoading] = useState(!previewData);
 
   useEffect(() => {
     if (previewData) {
-      setLog(previewData);
+      setGoll(previewData);
       setLoading(false);
       return;
     }
@@ -46,42 +46,43 @@ export default function LogDetailPage({ onBack, logId, previewData, onEdit = () 
     const fetchData = async () => {
       try {
         setLoading(true);
-        const logs = await api.getLogs(); // In a real app, this would be api.getLogById(logId)
-        const foundLog = logs.find((l: any) => l.id == logId);
+        const golls = await api.getGolls(); // In a real app, this would be api.getLogById(logId)
+        const foundGoll = golls.find((l: any) => l.id == gollId);
 
-        if (foundLog) {
+        if (foundGoll) {
           const uiLog = {
-            ...foundLog,
-            matchType: foundLog.matchType || 'vs',
-            participants: foundLog.participants || [],
-            media: foundLog.media || (foundLog.previewLinks || []).map((link: string, idx: number) => ({
+            ...foundGoll,
+            matchType: foundGoll.matchType || 'vs',
+            participants: foundGoll.participants || [],
+            media: foundGoll.media || (foundGoll.previewLinks || []).map((link: string, idx: number) => ({
               type: link.includes('youtube') ? 'video' : 'article',
               title: `Linked Resource ${idx + 1}`,
               url: link,
+              thumbnail: '',
             })),
-            description: foundLog.description || foundLog.content,
-            stats: { likes: foundLog.likes || 0, views: foundLog.views || 0 },
-            isArchived: foundLog.isArchived || false,
+            description: foundGoll.description,
+            stats: { likes: foundGoll.likes || 0, views: 0 },
+            isArchived: foundGoll.isArchived || false,
           };
-          setLog(uiLog);
+          setGoll(uiLog);
         } else {
-          setLog(DEFAULT_LOG_DATA);
+          setGoll(DEFAULT_LOG_DATA);
         }
       } catch (error) {
         console.error("Error fetching log detail:", error);
-        setLog(DEFAULT_LOG_DATA);
+        setGoll(DEFAULT_LOG_DATA);
       } finally {
         setLoading(false);
       }
     };
 
-    if (logId) {
+    if (gollId) {
       fetchData();
     }
-  }, [logId, previewData]);
+  }, [gollId, previewData]);
 
   const handleArchive = (isArchived: boolean) => {
-    setLog(prevLog => prevLog ? { ...prevLog, isArchived } : null);
+    setGoll(prevGoll => prevGoll ? { ...prevGoll, isArchived } : null);
     alert(isArchived ? "Log archived." : "Log unarchived.");
   }
 
@@ -102,11 +103,11 @@ export default function LogDetailPage({ onBack, logId, previewData, onEdit = () 
     );
   }
 
-  if (!log) return null;
+  if (!goll) return null;
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] pb-20 relative">
-      {log.isArchived && (
+      {goll.isArchived && (
         <div className="bg-slate-800 text-white text-center py-2 px-4 text-sm font-bold sticky top-16 z-20 flex items-center justify-center gap-2">
           Archived
         </div>
@@ -133,8 +134,8 @@ export default function LogDetailPage({ onBack, logId, previewData, onEdit = () 
             <button className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-full transition-colors">
               <Share2 className="w-5 h-5" />
             </button>
-            <ManageLog 
-              log={log} 
+            <ManageGoll 
+              goll={goll} 
               onEdit={onEdit} 
               onArchive={handleArchive}
               onDelete={handleDelete}
@@ -147,10 +148,10 @@ export default function LogDetailPage({ onBack, logId, previewData, onEdit = () 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           <div className="lg:col-span-8">
-            <LogDetailCard log={log} />
+            <GollDetailCard goll={goll} />
           </div>
           <div className="lg:col-span-4">
-            <LogInteractionSidebar log={log} />
+            <GollInteractionSidebar goll={goll} />
           </div>
         </div>
       </main>
