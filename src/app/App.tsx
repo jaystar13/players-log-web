@@ -8,6 +8,7 @@ import MyPage from '@/pages/my-page/ui';
 import LoginPage from '@/pages/login-page';
 import { api, supabase } from '@/shared/api';
 import { Screen } from '@/shared/lib/navigation'; // New import
+import { GoogleOAuthProvider } from '@react-oauth/google';
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState<Screen>('login');
@@ -66,6 +67,7 @@ export default function App() {
   }
 
   return (
+    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_OAUTH_CLIENT_ID}>
     <div className="min-h-screen bg-[#F8FAFC] font-sans text-slate-900">
       <Toaster position="top-center" richColors />
       
@@ -107,5 +109,6 @@ export default function App() {
         />
       )}
     </div>
+    </GoogleOAuthProvider>
   );
 }
