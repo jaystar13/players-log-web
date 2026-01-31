@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { tokenStore } from '@/shared/auth/tokenStore';
+import { exchangeCodeForToken } from '@/shared/api/auth';
 
 interface LoginCallbackPageProps {
   onLoginSuccess: () => void;
@@ -9,25 +10,36 @@ export default function LoginCallbackPage({ onLoginSuccess }: LoginCallbackPageP
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const token = params.get('token');
+    const code = params.get('code');
     const error = params.get('error');
 
-    if (token) {
-      tokenStore.set(token);
-      // Instead of navigating, call the success handler from the parent.
-      // The parent component (`App.tsx`) will be responsible for changing the screen.
-      onLoginSuccess();
+    const handleTokenExchange = async (authCode: string) => {
+      try {
+        const { accessToken } = await exchangeCodeForToken(authCode);
+        tokenStore.set(accessToken);
+        
+        // URL에서 code 쿼리 파라미터를 제거하여 주소창을 깔끔하게 정리합니다.
+        window.history.replaceState({}, '', '/');
+        
+        onLoginSuccess();
+      } catch (exchangeError) {
+        console.error('Token exchange failed:', exchangeError);
+        alert('Login failed during token exchange. Please try again.');
+        window.location.href = '/login';
+      }
+    };
+
+    if (code) {
+      handleTokenExchange(code);
     } else if (error) {
-      console.error('Login Error:', error);
+      console.error('OAuth Error:', error);
       alert(`Login failed: ${error}`);
-      // Redirect to login page with error
       window.location.href = '/login'; 
     } else {
-      // No token or error, unexpected state, redirect to login
+      // No code or error, unexpected state
+      console.error('Unexpected state on callback page. No code or error found.');
       window.location.href = '/login';
     }
-    // Since onLoginSuccess is a function that might change,
-    // we should include it in the dependency array.
   }, [onLoginSuccess]);
 
   return (

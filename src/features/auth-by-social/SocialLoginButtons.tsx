@@ -15,9 +15,16 @@ export default function SocialLoginButtons({ onLoginSuccess }: SocialLoginButton
     window.location.href = `${backendUrl}/oauth2/authorize/google?redirect_uri=${redirectUri}`;
   };
 
-  // These are kept for other social providers, but can be removed if not needed.
-  const handleOtherSocialLogin = async (provider: 'apple' | 'facebook') => {
-    alert(`Login with ${provider} is not implemented yet.`);
+  const handleMetaLogin = () => {
+    // Redirect to the backend's OAuth2 authorization endpoint for Facebook
+    const backendUrl = import.meta.env.VITE_API_BASE || 'http://localhost:8080';
+    const redirectUri = `${window.location.origin}/login/callback`;
+    window.location.href = `${backendUrl}/oauth2/authorize/facebook?redirect_uri=${redirectUri}`;
+  };
+
+  // Apple is kept as handleOtherSocialLogin, but can be removed if not needed.
+  const handleAppleLogin = async () => {
+    alert(`Login with Apple is not implemented yet.`);
   };
   
   const handleDemoLogin = () => {
@@ -43,7 +50,7 @@ export default function SocialLoginButtons({ onLoginSuccess }: SocialLoginButton
 
         {/* Apple */}
         <Button
-          onClick={() => handleOtherSocialLogin('apple')}
+          onClick={handleAppleLogin}
           className="h-auto w-full flex items-center justify-center gap-3 bg-black hover:bg-gray-900 text-white font-bold py-3.5 px-4 rounded-xl transition-all active:scale-95 shadow-md"
         >
            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
@@ -54,7 +61,7 @@ export default function SocialLoginButtons({ onLoginSuccess }: SocialLoginButton
 
         {/* Meta */}
         <Button
-          onClick={() => handleOtherSocialLogin('facebook')}
+          onClick={handleMetaLogin}
           className="h-auto w-full flex items-center justify-center gap-3 bg-[#1877F2] hover:bg-[#166fe5] text-white font-bold py-3.5 px-4 rounded-xl transition-all active:scale-95 shadow-md"
         >
           <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">

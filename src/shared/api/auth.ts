@@ -18,14 +18,14 @@ export interface UserProfile {
 }
 
 /**
- * Calls the backend to sign in with a Google Access Token.
- * @param googleAccessToken The token received from Google Sign-In.
+ * Exchanges a temporary authorization code for an access token.
+ * @param code The temporary code received from the backend OAuth2 redirect.
  * @returns A promise that resolves with the application's access token.
  */
-export const loginWithGoogle = async (googleAccessToken: string): Promise<{ accessToken: string }> => {
-  console.log("Calling backend /auth/google-login with google token:", googleAccessToken);
-  const response = await apiClient.post<{ accessToken: string }>('/auth/google-login', {
-    token: googleAccessToken,
+export const exchangeCodeForToken = async (code: string): Promise<{ accessToken: string }> => {
+  console.log("Calling backend /auth/token/exchange with temporary code");
+  const response = await apiClient.post<{ accessToken: string }>('/auth/token/exchange', {
+    code: code,
   });
   return response.data;
 };
