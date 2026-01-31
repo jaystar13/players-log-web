@@ -1,33 +1,19 @@
 import React from 'react';
-import { useGoogleLogin } from '@react-oauth/google';
 import { Button } from '@/shared/ui/button';
-import { loginWithGoogle } from '@/shared/api/auth';
-import { tokenStore } from '@/shared/auth/tokenStore';
 
 interface SocialLoginButtonsProps {
   onLoginSuccess: () => void;
 }
 
 export default function SocialLoginButtons({ onLoginSuccess }: SocialLoginButtonsProps) {
-  const googleLogin = useGoogleLogin({
-    onSuccess: async (tokenResponse) => {
-      try {
-        const { accessToken } = await loginWithGoogle(tokenResponse.access_token);
-        
-        tokenStore.set(accessToken);
-        
-        onLoginSuccess();
-        
-      } catch (error) {
-        console.error('Login failed:', error);
-        alert('Google login failed. Please try again.');
-      }
-    },
-    onError: () => {
-      console.error('Login Failed');
-      alert('Google login failed. Please try again.');
-    },
-  });
+  
+  const handleGoogleLogin = () => {
+    // Redirect to the backend's OAuth2 authorization endpoint
+    const backendUrl = import.meta.env.VITE_API_BASE || 'http://localhost:8080';
+    // The redirect_uri tells Spring Security where to send the user back to after authentication
+    const redirectUri = `${window.location.origin}/login/callback`;
+    window.location.href = `${backendUrl}/oauth2/authorize/google?redirect_uri=${redirectUri}`;
+  };
 
   // These are kept for other social providers, but can be removed if not needed.
   const handleOtherSocialLogin = async (provider: 'apple' | 'facebook') => {
@@ -43,7 +29,7 @@ export default function SocialLoginButtons({ onLoginSuccess }: SocialLoginButton
       <div className="space-y-4">
         {/* Google */}
         <Button
-          onClick={() => googleLogin()}
+          onClick={handleGoogleLogin}
           className="h-auto w-full flex items-center justify-center gap-3 bg-white hover:bg-gray-50 text-slate-700 font-bold py-3.5 px-4 rounded-xl transition-all active:scale-95 shadow-md group"
         >
           <svg className="w-5 h-5" viewBox="0 0 24 24">

@@ -3,7 +3,8 @@ import { tokenStore } from '../auth/tokenStore';
 import { refreshToken } from './auth'; // Import refreshToken directly
 
 const apiClient = axios.create({
-  baseURL: '/api',
+  baseURL: import.meta.env.VITE_API_BASE,
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -45,7 +46,7 @@ apiClient.interceptors.response.use(
     const originalRequest = error.config;
 
     // Check if it's a 401 error and not a retry request
-    if (error.response?.status === 401 && !(originalRequest as any)._retry) {
+    if (error.response?.status === 401 && !(originalRequest as any)._retry && originalRequest?.url !== '/auth/refresh') {
       if (isRefreshing) {
         // If we are already refreshing, push the request to the queue
         return new Promise(function(resolve, reject) {
@@ -71,14 +72,13 @@ apiClient.interceptors.response.use(
       } catch (refreshError) {
         processQueue(refreshError as AxiosError, null);
         tokenStore.clear();
-        // Redirect to login page
-        window.location.href = '/login'; 
+        // The initial call that triggered the refresh will now fail,
+        // and the app's logic (e.g., in App.tsx) will handle it.
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;
       }
     }
-
     return Promise.reject(error);
   }
 );

@@ -1,3 +1,3 @@
 // src/shared/lib/navigation.ts
 
-export type Screen = 'login' | 'feed' | 'create' | 'edit' | 'detail' | 'mypage';
+export type Screen = 'login' | 'feed' | 'create' | 'edit' | 'detail' | 'mypage' | 'login-callback';

@@ -6,8 +6,8 @@ import EditGollPage from '@/pages/edit-goll';
 import GollDetailPage from '@/pages/goll-detail/ui';
 import MyPage from '@/pages/my-page/ui';
 import LoginPage from '@/pages/login-page';
+import LoginCallbackPage from '@/pages/login-callback'; // Import LoginCallbackPage
 import { Screen } from '@/shared/lib/navigation';
-import { GoogleOAuthProvider } from '@react-oauth/google';
 import { checkAuthStatus } from '@/shared/api/auth';
 import { tokenStore } from '@/shared/auth/tokenStore';
 
@@ -19,16 +19,23 @@ export default function App() {
 
   // Check for existing session on app startup
   useEffect(() => {
+    const path = window.location.pathname;
+
+    if (path === '/login/callback') {
+      setCurrentScreen('login-callback');
+      setIsLoading(false);
+      return;
+    }
+
     const verifySession = async () => {
       try {
         // This call will succeed if the HttpOnly refresh token cookie is valid
         const { accessToken, user } = await checkAuthStatus();
         tokenStore.set(accessToken);
-        console.log("Session verified, user:", user);
         setCurrentScreen('feed');
       } catch (e) {
-        console.log("No active session found.");
-        // Stay on the login screen
+        // If session check fails, ensure we are on the login screen
+        setCurrentScreen('login');
       } finally {
         setIsLoading(false);
       }
@@ -67,7 +74,6 @@ export default function App() {
   }
 
   return (
-    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_OAUTH_CLIENT_ID}>
     <div className="min-h-screen bg-[#F8FAFC] font-sans text-slate-900">
       <Toaster position="top-center" richColors />
       
@@ -108,7 +114,10 @@ export default function App() {
           onNavigate={navigateTo}
         />
       )}
+
+      {currentScreen === 'login-callback' && (
+        <LoginCallbackPage onLoginSuccess={handleLoginSuccess} />
+      )}
     </div>
-    </GoogleOAuthProvider>
   );
 }
