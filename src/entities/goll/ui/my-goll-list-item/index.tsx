@@ -1,8 +1,8 @@
 import { Goll } from '@/entities/goll/model/types';
 import { cn } from '@/shared/ui/utils';
 import { motion } from 'framer-motion';
-import { Calendar, Heart, User, ArrowRight } from 'lucide-react';
-import React from 'react';
+import React, { forwardRef } from 'react'; // forwardRef 추가
+import { Calendar, Heart, User, ArrowRight } from 'lucide-react'; // 기존 lucide-react import 유지
 
 interface MyGollListItemProps {
   goll: Goll;
@@ -10,9 +10,10 @@ interface MyGollListItemProps {
   onNavigateToDetail: (id: number) => void;
 }
 
-export const MyGollListItem = ({ goll: goll, activeTab, onNavigateToDetail }: MyGollListItemProps) => {
+export const MyGollListItem = forwardRef<HTMLDivElement, MyGollListItemProps>(({ goll: goll, activeTab, onNavigateToDetail }, ref) => {
   return (
     <motion.div
+      ref={ref} // ref를 motion.div에 전달
       layout
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
@@ -77,4 +78,4 @@ export const MyGollListItem = ({ goll: goll, activeTab, onNavigateToDetail }: My
       </div>
     </motion.div>
   );
-};
+});

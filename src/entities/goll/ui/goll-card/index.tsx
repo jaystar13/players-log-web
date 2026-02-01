@@ -6,7 +6,7 @@ import { cn } from '@/shared/ui/utils';
 
 interface MatchGollCardProps {
   goll: Goll;
-  onClick: (id: number) => void;
+  onClick: (id: number | string) => void;
 }
 
 export const MatchGollCard = ({ goll: goll, onClick }: MatchGollCardProps) => {
@@ -24,7 +24,7 @@ export const MatchGollCard = ({ goll: goll, onClick }: MatchGollCardProps) => {
           </span>
           <span className="text-slate-400 text-xs flex items-center gap-1">
             <Calendar className="w-3.5 h-3.5" />
-            {goll.date}
+            {new Date(goll.matchDate).toLocaleDateString()}
           </span>
         </div>
 
@@ -41,13 +41,17 @@ export const MatchGollCard = ({ goll: goll, onClick }: MatchGollCardProps) => {
           </div>
           <div className="flex items-center gap-1.5">
             <User className="w-3.5 h-3.5 text-slate-400" />
-            <span className="truncate">{goll.teams}</span>
+            <span className="truncate">
+              {goll.participants && goll.participants.length > 0
+                ? goll.participants.map(p => p.name).join(', ')
+                : 'No participants'}
+            </span>
           </div>
         </div>
 
         {/* Preview Snippet */}
         <div className="mt-auto bg-slate-50 rounded-lg p-3 text-sm text-slate-600 line-clamp-3 mb-4 border border-slate-100 italic">
-          "{goll.preview || goll.description || "No preview available"}"
+          "{goll.description || "No preview available"}"
         </div>
 
         {/* Media Indicators */}
@@ -70,13 +74,13 @@ export const MatchGollCard = ({ goll: goll, onClick }: MatchGollCardProps) => {
         <div className="pt-4 border-t border-slate-100 flex items-center justify-between mt-auto">
           <div className="flex items-center gap-2">
             <img 
-              src={goll.owner?.avatar || "https://images.unsplash.com/photo-1599566150163-29194dcaad36?auto=format&fit=crop&q=80&w=100&h=100"} 
+              src={goll.owner?.profileImageUrl || "https://images.unsplash.com/photo-1599566150163-29194dcaad36?auto=format&fit=crop&q=80&w=100&h=100"} 
               alt={goll.owner?.name || "User"} 
               className="w-8 h-8 rounded-full border border-white shadow-sm" 
             />
             <div className="flex flex-col">
               <span className="text-xs font-semibold text-slate-700">{goll.owner?.name || "Anonymous"}</span>
-              <span className="text-[10px] text-slate-400">Owner</span>
+              <span className="text-[10px] text-slate-400 truncate">{goll.owner?.description || 'Owner'}</span>
             </div>
           </div>
           

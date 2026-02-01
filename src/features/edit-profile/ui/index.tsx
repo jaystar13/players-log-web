@@ -12,44 +12,36 @@ import {
   Info
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { updateUserProfile, UserProfile } from '@/shared/api/auth';
-import { tokenStore } from '@/shared/auth/tokenStore';
+import { api } from '@/shared/api';
+import { UserProfile } from '@/entities/user/model/types';
 
 
 export const EditProfileForm = ({ user, onSaveComplete }: { user: UserProfile, onSaveComplete: () => void }) => {
   const [saving, setSaving] = useState(false);
 
   // Form State initialized from props
-  const [nickname, setNickname] = useState(user.nickname || user.name || "");
-  const [bio, setBio] = useState(user.bio || "");
+  const [nickname, setNickname] = useState(user.name || "");
+  const [bio, setBio] = useState(user.description || "");
   const [socials, setSocials] = useState({
-    instagram: user.socials?.instagram || "",
-    youtube: user.socials?.youtube || "",
-    threads: user.socials?.threads || "",
-    twitter: user.socials?.twitter || ""
+    instagram: user.socialLinks?.instagram || "",
+    youtube: user.socialLinks?.youtube || "",
+    threads: user.socialLinks?.threads || "",
+    twitter: user.socialLinks?.x || "" // Map 'x' from backend to 'twitter' for frontend
   });
-  const avatarUrl = user.avatar || "";
+  const avatarUrl = user.profileImageUrl || "";
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
 
     try {
-      if (!user.id) {
-        throw new Error("User ID is missing. Cannot update profile.");
-      }
-
-      const updatedProfileData: Partial<UserProfile> = {
+      const updatedProfileData = {
         nickname,
         bio,
         socials
       };
 
-      const updatedUser = await updateUserProfile(user.id, updatedProfileData);
-      
-      // Optionally, you might want to refresh the token store or user context here
-      // if the backend returns a new token or updated user object
-      console.log("Profile updated:", updatedUser);
+      const updatedUser = await api.updateCurrentUserProfile(updatedProfileData);
 
       toast.success("Profile updated successfully");
       onSaveComplete();

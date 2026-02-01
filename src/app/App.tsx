@@ -8,7 +8,7 @@ import MyPage from '@/pages/my-page/ui';
 import LoginPage from '@/pages/login-page';
 import LoginCallbackPage from '@/pages/login-callback'; // Import LoginCallbackPage
 import { Screen } from '@/shared/lib/navigation';
-import { checkAuthStatus } from '@/shared/api/auth';
+import { api } from '@/shared/api';
 import { tokenStore } from '@/shared/auth/tokenStore';
 
 export default function App() {
@@ -30,8 +30,7 @@ export default function App() {
     const verifySession = async () => {
       try {
         // This call will succeed if the HttpOnly refresh token cookie is valid
-        const { accessToken, user } = await checkAuthStatus();
-        tokenStore.set(accessToken);
+        await api.getCurrentUserProfile();
         setCurrentScreen('feed');
       } catch (e) {
         // If session check fails, ensure we are on the login screen
@@ -57,7 +56,7 @@ export default function App() {
     setCurrentScreen('edit');
   };
 
-  const handleGollClick = (id: number) => {
+  const handleGollClick = (id: number | string) => {
     navigateTo('detail', { id });
   };
 
@@ -103,7 +102,7 @@ export default function App() {
       {currentScreen === 'detail' && (
         <GollDetailPage 
           onBack={() => navigateTo('feed')} 
-          gollId={selectedGollId}
+          gollId={selectedGollId ? selectedGollId : 0}
           onEdit={handleEditClick}
         />
       )}

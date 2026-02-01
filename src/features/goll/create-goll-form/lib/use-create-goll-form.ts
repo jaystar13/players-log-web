@@ -1,21 +1,24 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Goll } from '@/entities/goll/model/types';
-import { InitialGollFormData, SPORTS_CATEGORIES, MOCK_LOGS } from '../model/types';
+import { InitialGollFormData, SPORTS_CATEGORIES, ParticipantInput } from '../model/types'; // Import ParticipantInput
 import { fetchExistingGolls } from '../api';
 
 export const useCreateGollForm = (initialData?: InitialGollFormData) => {
   const isEditMode = !!initialData;
 
+  const getInitialDate = (isoString?: string) => isoString ? isoString.split('T')[0] : "";
+  const getInitialTime = (isoString?: string) => isoString ? isoString.split('T')[1]?.substring(0, 5) || "" : "";
+
   // -- State Initialization --
   const [title, setTitle] = useState(initialData?.title || "");
   const [sport, setSport] = useState(initialData?.sport || SPORTS_CATEGORIES[0]);
-  const [date, setDate] = useState(initialData?.date || "");
-  const [time, setTime] = useState(initialData?.time || "");
+  const [date, setDate] = useState(initialData?.date);
+  const [time, setTime] = useState(initialData?.time);
   const [venue, setVenue] = useState(initialData?.venue || "");
   const [description, setDescription] = useState(initialData?.description || "");
   
   // Multiple Links State
-  const [previewLinks, setPreviewLinks] = useState<string[]>([]);
+  const [previewLinks, setPreviewLinks] = useState<string[]>(initialData?.previewLinks || []);
   const [newLink, setNewLink] = useState("");
 
   // Match Participants State
@@ -23,11 +26,15 @@ export const useCreateGollForm = (initialData?: InitialGollFormData) => {
   const [participantUnit, setParticipantUnit] = useState<'individual' | 'team'>(initialData?.participantUnit || 'individual');
   
   // VS Mode Participants
-  const [competitorA, setCompetitorA] = useState("");
-  const [competitorB, setCompetitorB] = useState("");
+  const [competitorA, setCompetitorA] = useState(initialData?.matchType === 'vs' && initialData.participants?.[0]?.name || "");
+  const [competitorB, setCompetitorB] = useState(initialData?.matchType === 'vs' && initialData.participants?.[1]?.name || "");
   
   // Multi Mode / List Participants
-  const [participants, setParticipants] = useState<string[]>([]);
+  const [participants, setParticipants] = useState<ParticipantInput[]>(
+    initialData?.matchType === 'multi' && initialData.participants
+      ? initialData.participants.map(p => ({...p, votes: p.votes || 0, displayOrder: p.displayOrder || 0})) // Ensure displayOrder is present
+      : []
+  );
   const [newParticipant, setNewParticipant] = useState("");
 
   const [existingAllGolls, setExistingAllGolls] = useState<Goll[]>([]); // Renamed to avoid confusion with similarLogs
@@ -51,8 +58,8 @@ export const useCreateGollForm = (initialData?: InitialGollFormData) => {
       // Basic fields
       setTitle(initialData.title || "");
       setSport(initialData.sport || SPORTS_CATEGORIES[0]);
-      setDate(initialData.date || "");
-      setTime(initialData.time || "");
+      setDate(initialData.date);
+      setTime(initialData.time);
       setVenue(initialData.venue || "");
       setDescription(initialData.description || "");
       setMatchType(initialData.matchType || 'vs');
@@ -65,41 +72,32 @@ export const useCreateGollForm = (initialData?: InitialGollFormData) => {
         setPreviewLinks(initialData.previewLinks);
       }
 
-      // Load Participants
-      if (initialData.participants && Array.isArray(initialData.participants)) {
-        if (initialData.matchType === 'vs' && initialData.participants.length >= 2) {
-          setCompetitorA(initialData.participants[0].name);
-          setCompetitorB(initialData.participants[1].name);
-        } else {
-          setParticipants(initialData.participants.map((p: any) => p.name));
-        }
-      }
+      // Load Participants (already handled in useState init)
     }
   }, [initialData]);
 
   // Helper to get the display string for participants
   const getTeamsString = useMemo(() => {
     if (matchType === 'multi') {
-      return participants.length > 0 ? participants.join(", ") : "Multi-entry event";
+      return participants.length > 0 ? participants.map(p => p.name).join(", ") : "Multi-entry event";
     }
     return `${competitorA} vs ${competitorB}`;
   }, [matchType, participants, competitorA, competitorB]);
 
   // Helper to format data for Preview Detail Screen
   const getPreviewData = useMemo(() => {
-    let formattedParticipants = [];
+    let formattedParticipants: ParticipantInput[] = [];
     
     if (matchType === 'vs') {
       formattedParticipants = [
-        { id: 'p1', name: competitorA || 'Player A', type: participantUnit, votes: 0 },
-        { id: 'p2', name: competitorB || 'Player B', type: participantUnit, votes: 0 }
+        { id: 'p0', name: competitorA || 'Player A', type: participantUnit, votes: 0, displayOrder: 0 },
+        { id: 'p1', name: competitorB || 'Player B', type: participantUnit, votes: 0, displayOrder: 1 }
       ];
     } else {
-      formattedParticipants = participants.map((p, idx) => ({
-        id: `p${idx}`,
-        name: p,
-        type: participantUnit,
-        votes: 0
+      formattedParticipants = participants.map((p) => ({
+        ...p,
+        id: p.id || `p${p.displayOrder}`, // Ensure ID for React key
+        votes: p.votes || 0 // Ensure votes default
       }));
     }
 
@@ -115,8 +113,7 @@ export const useCreateGollForm = (initialData?: InitialGollFormData) => {
     return {
       sport,
       title: title || "Untitled Log",
-      date,
-      time,
+      matchDate: `${date}T${time || '00:00'}:00`, // Combine date and time
       venue,
       matchType,
       participants: formattedParticipants,
@@ -124,9 +121,10 @@ export const useCreateGollForm = (initialData?: InitialGollFormData) => {
       owner: {
         name: "You (Preview)",
         role: "Log Creator",
-        avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=100&h=100"
+        description: "This is a preview of your bio.",
+        profileImageUrl: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=100&h=100"
       },
-      description: description, // Changed from content to description
+      description: description,
       media: formattedMedia,
       stats: { likes: initialData?.stats?.likes || 0, views: initialData?.stats?.views || 0 }
     };
@@ -145,7 +143,7 @@ export const useCreateGollForm = (initialData?: InitialGollFormData) => {
       if (initialData && goll.id === initialData.id) return false;
 
       const sportMatch = goll.sport === sport;
-      const dateMatch = date ? goll.date === date : false;
+      const dateMatch = date ? goll.matchDate === date : false;
       const titleMatch = title.length > 2 && goll.title?.toLowerCase().includes(title.toLowerCase());
       
       // Match if: Same Sport AND (Same Date OR Similar Title)
@@ -156,13 +154,18 @@ export const useCreateGollForm = (initialData?: InitialGollFormData) => {
 
   const handleAddParticipant = () => {
     if (newParticipant.trim()) {
-      setParticipants([...participants, newParticipant.trim()]);
+      const newOrder = participants.length;
+      setParticipants(prev => [...prev, { name: newParticipant.trim(), type: participantUnit, votes: 0, displayOrder: newOrder }]);
       setNewParticipant("");
     }
   };
 
-  const removeParticipant = (index: number) => {
-    setParticipants(participants.filter((_, i) => i !== index));
+  const removeParticipant = (indexToRemove: number) => {
+    setParticipants(prevParticipants => 
+      prevParticipants
+        .filter((_, i) => i !== indexToRemove)
+        .map((p, idx) => ({ ...p, displayOrder: idx })) // Re-index displayOrder after removal
+    );
   };
 
   const handleAddLink = () => {
@@ -192,19 +195,14 @@ export const useCreateGollForm = (initialData?: InitialGollFormData) => {
 
   const getFormDataForSubmit = () => {
     // Construct structured participants data
-    let formattedParticipants = [];
+    let formattedParticipants: ParticipantInput[] = [];
     if (matchType === 'vs') {
       formattedParticipants = [
-        { id: 'p1', name: competitorA || 'Player A', type: participantUnit, votes: 0 },
-        { id: 'p2', name: competitorB || 'Player B', type: participantUnit, votes: 0 }
+        { name: competitorA || '', type: participantUnit, votes: 0, displayOrder: 0 },
+        { name: competitorB || '', type: participantUnit, votes: 0, displayOrder: 1 }
       ];
     } else {
-      formattedParticipants = participants.map((p, idx) => ({
-        id: `p${idx}`,
-        name: p,
-        type: participantUnit,
-        votes: 0
-      }));
+      formattedParticipants = participants; // Already ParticipantInput[] with displayOrder
     }
 
     return {
@@ -215,7 +213,7 @@ export const useCreateGollForm = (initialData?: InitialGollFormData) => {
       date,
       time,
       venue,
-      teams: getTeamsString, // Use the memoized value
+      // teams: getTeamsString, // No longer needed for backend
       matchType,
       participantUnit,
       previewLinks,

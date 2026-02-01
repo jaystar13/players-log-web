@@ -1,32 +1,48 @@
-import { Goll } from '@/entities/goll/model/types';
+import { Goll, Participant } from '@/entities/goll/model/types';
 import { cn } from '@/shared/ui/utils';
 import { motion } from 'framer-motion';
-import { Shield, Sparkles, ThumbsUp, Trophy, User } from 'lucide-react';
-import React, { useState } from 'react';
+import { Shield, Sparkles, ThumbsUp, Trophy, User, AlertCircle, Loader2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { api } from '@/shared/api';
 
 type VoteForParticipantProps = {
   goll: Partial<Goll>;
 };
 
-export const VoteForParticipant = ({ goll: goll }: VoteForParticipantProps) => {
-  const { matchType, participants: initialParticipants, isArchived } = goll;
+export const VoteForParticipant = ({ goll }: VoteForParticipantProps) => {
+  const { id: gollId, matchType, participants: initialParticipants, isArchived, userVoteId } = goll;
   
-  const [participants, setParticipants] = useState(initialParticipants || []);
-  const [votedParticipantId, setVotedParticipantId] = useState<string | null>(null);
+  const [participants, setParticipants] = useState<Participant[]>(initialParticipants || []);
+  const [votedParticipantId, setVotedParticipantId] = useState<number | string | null>(userVoteId || null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleVote = (id: string) => {
-    if (votedParticipantId === id) {
-      setVotedParticipantId(null);
-      setParticipants((prev: any[]) => prev.map(p => 
-        p.id === id ? { ...p, votes: (p.votes || 0) - 1 } : p
-      ));
-    } else {
-      setParticipants((prev: any[]) => prev.map(p => {
-        if (p.id === id) return { ...p, votes: (p.votes || 0) + 1 };
-        if (p.id === votedParticipantId) return { ...p, votes: (p.votes || 0) - 1 };
-        return p;
-      }));
-      setVotedParticipantId(id);
+  useEffect(() => {
+    setParticipants(initialParticipants || []);
+    setVotedParticipantId(userVoteId || null);
+  }, [initialParticipants, userVoteId]);
+
+
+  const handleVote = async (participantId: number | string) => {
+    if (isSubmitting || !gollId) return;
+
+    setIsSubmitting(true);
+    try {
+      const response = await api.voteForParticipant(gollId, participantId);
+      
+      // Update state based on the response from the server
+      setVotedParticipantId(response.votedParticipantId);
+      setParticipants(prev => 
+        prev.map(p => ({
+          ...p,
+          votes: response.voteCounts[p.id!] || 0,
+        }))
+      );
+
+    } catch (error) {
+      console.error("Failed to vote for participant:", error);
+      // Optionally show a toast to the user
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -62,7 +78,7 @@ export const VoteForParticipant = ({ goll: goll }: VoteForParticipantProps) => {
                <motion.div 
                  className="h-full bg-blue-500 relative"
                  initial={{ width: '50%' }}
-                 animate={{ width: `${totalVotes > 0 ? (participants[0].votes / totalVotes) * 100 : 50}%` }}
+                 animate={{ width: `${totalVotes > 0 ? ((participants[0].votes || 0) / totalVotes) * 100 : 50}%` }}
                  transition={{ duration: 1, ease: "circOut" }}
                />
                <div className="w-1 h-full bg-white z-10" />
@@ -71,8 +87,8 @@ export const VoteForParticipant = ({ goll: goll }: VoteForParticipantProps) => {
                />
             </div>
             <div className="flex justify-between text-sm font-bold text-slate-800 mt-2">
-              <span className="text-blue-600">{Math.round(totalVotes > 0 ? (participants[0].votes / totalVotes) * 100 : 0)}%</span>
-              <span className="text-red-600">{Math.round(totalVotes > 0 ? (participants[1].votes / totalVotes) * 100 : 0)}%</span>
+              <span className="text-blue-600">{Math.round(totalVotes > 0 ? ((participants[0].votes || 0) / totalVotes) * 100 : 0)}%</span>
+              <span className="text-red-600">{Math.round(totalVotes > 0 ? ((participants[1].votes || 0) / totalVotes) * 100 : 0)}%</span>
             </div>
           </div>
         )}
@@ -81,25 +97,25 @@ export const VoteForParticipant = ({ goll: goll }: VoteForParticipantProps) => {
           "grid gap-4",
           matchType === 'vs' ? "grid-cols-2" : "grid-cols-1 sm:grid-cols-2"
         )}>
-          {participants.map((p: any, index: number) => {
+          {participants.map((p, index) => {
             const isSelected = votedParticipantId === p.id;
             
             return (
               <motion.button
                 key={p.id || index}
-                whileHover={!isArchived ? { scale: 1.02 } : {}}
-                whileTap={!isArchived ? { scale: 0.98 } : {}}
-                onClick={() => !isArchived && handleVote(p.id)}
-                disabled={isArchived}
+                whileHover={!isArchived && !isSubmitting ? { scale: 1.02 } : {}}
+                whileTap={!isArchived && !isSubmitting ? { scale: 0.98 } : {}}
+                onClick={() => !isArchived && handleVote(p.id!)}
+                disabled={isArchived || isSubmitting}
                 className={cn(
                   "relative flex flex-col items-center p-4 rounded-xl border-2 transition-all overflow-hidden",
                   isSelected 
                     ? "border-[#1A237E] bg-[#E1F5FE]" 
                     : "border-slate-100 bg-slate-50 hover:bg-white hover:border-slate-200 hover:shadow-md",
-                  isArchived && "cursor-not-allowed hover:bg-slate-50 hover:border-slate-100 hover:shadow-none"
+                  (isArchived || isSubmitting) && "cursor-not-allowed hover:bg-slate-50 hover:border-slate-100 hover:shadow-none"
                 )}
               >
-                {isSelected && (
+                {isSelected && !isSubmitting && (
                   <div className="absolute top-2 right-2">
                     <motion.div 
                       initial={{ scale: 0 }} 
@@ -109,6 +125,12 @@ export const VoteForParticipant = ({ goll: goll }: VoteForParticipantProps) => {
                       <Sparkles className="w-5 h-5 fill-[#1A237E]" />
                     </motion.div>
                   </div>
+                )}
+                
+                {isSubmitting && (
+                   <div className="absolute inset-0 bg-white/50 flex items-center justify-center">
+                     <Loader2 className="w-6 h-6 animate-spin text-slate-500" />
+                   </div>
                 )}
                 
                 <div className={cn(
@@ -142,6 +164,11 @@ export const VoteForParticipant = ({ goll: goll }: VoteForParticipantProps) => {
               </motion.button>
             );
           })}
+        </div>
+
+        <div className="flex items-center justify-center gap-2 text-xs font-medium text-amber-600 bg-amber-50 py-2 px-3 rounded-lg border border-amber-100 mt-6">
+          <AlertCircle className="w-4 h-4" />
+          Only 1 vote per user, per log. Changing your vote is possible.
         </div>
       </div>
     </section>

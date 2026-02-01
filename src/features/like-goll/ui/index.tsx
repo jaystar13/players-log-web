@@ -1,31 +1,39 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { AlertCircle, Heart } from 'lucide-react';
+import { Heart } from 'lucide-react';
 import { cn } from '@/shared/ui/utils';
 import { api } from '@/shared/api';
 
 type LikeGollProps = {
-  gollId: number;
+  gollId: number | string;
   initialLikes: number;
+  initialIsLiked: boolean;
   isArchived?: boolean;
 };
 
-export const LikeGoll = ({ gollId: gollId, initialLikes, isArchived }: LikeGollProps) => {
-  const [isLiked, setIsLiked] = useState(false);
+export const LikeGoll = ({ gollId, initialLikes, initialIsLiked, isArchived }: LikeGollProps) => {
+  const [isLiked, setIsLiked] = useState(initialIsLiked);
   const [likeCount, setLikeCount] = useState(initialLikes);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    setIsLiked(initialIsLiked);
+    setLikeCount(initialLikes);
+  }, [initialIsLiked, initialLikes]);
 
   const handleLike = async () => {
-    if (isLiked || isArchived) return;
+    if (isSubmitting || isArchived) return;
 
+    setIsSubmitting(true);
     try {
-      setIsLiked(true);
-      setLikeCount((prev) => prev + 1);
-      await api.likeGoll(gollId);
+      const response = await api.likeGoll(gollId);
+      setIsLiked(response.liked);
+      setLikeCount(response.likes);
     } catch (error) {
-      console.error("Failed to like log:", error);
-      // Revert state on error
-      setIsLiked(false);
-      setLikeCount((prev) => prev - 1);
+      console.error("Failed to update like status:", error);
+      // Optionally show a toast message to the user
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -40,16 +48,16 @@ export const LikeGoll = ({ gollId: gollId, initialLikes, isArchived }: LikeGollP
       </p>
 
       <motion.button
-        whileHover={!isArchived ? { scale: 1.05 } : {}}
-        whileTap={!isArchived ? { scale: 0.95 } : {}}
+        whileHover={!isArchived && !isSubmitting ? { scale: 1.05 } : {}}
+        whileTap={!isArchived && !isSubmitting ? { scale: 0.95 } : {}}
         onClick={handleLike}
-        disabled={isArchived || isLiked}
+        disabled={isArchived || isSubmitting}
         className={cn(
           "w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-4 transition-all shadow-xl",
           isLiked 
-            ? "bg-gradient-to-br from-pink-500 to-rose-600 shadow-pink-500/30 cursor-default" 
+            ? "bg-gradient-to-br from-pink-500 to-rose-600 shadow-pink-500/30" 
             : "bg-slate-100 hover:bg-pink-50 text-slate-400 hover:text-pink-500",
-          isArchived && "cursor-not-allowed opacity-50"
+          (isArchived || isSubmitting) && "cursor-not-allowed opacity-50"
         )}
       >
         <Heart 
@@ -66,11 +74,6 @@ export const LikeGoll = ({ gollId: gollId, initialLikes, isArchived }: LikeGollP
           {likeCount.toLocaleString()}
         </span>
         <span className="text-sm font-medium text-slate-500 ml-1">Likes</span>
-      </div>
-
-      <div className="flex items-center justify-center gap-2 text-xs font-medium text-amber-600 bg-amber-50 py-2 px-3 rounded-lg border border-amber-100">
-        <AlertCircle className="w-4 h-4" />
-        Only 1 like per user
       </div>
     </div>
   );

@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { ChevronLeft, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { EditProfileForm } from '@/features/edit-profile/ui';
-import { checkAuthStatus, UserProfile } from '@/shared/api/auth';
-import { tokenStore } from '@/shared/auth/tokenStore';
+import { api } from '@/shared/api';
+import { UserProfile } from '@/entities/user/model/types';
 
 interface EditProfilePageProps {
   onBack: () => void;
@@ -17,10 +17,9 @@ export default function EditProfilePage({ onBack, onSaveComplete }: EditProfileP
   useEffect(() => {
     async function fetchUser() {
       try {
-        const { user: currentUser, accessToken } = await checkAuthStatus();
+        const currentUser = await api.getCurrentUserProfile();
         if (currentUser) {
           setUser(currentUser);
-          tokenStore.set(accessToken); // Ensure token is fresh after check
         } else {
           toast.warning("Could not find user session. Please log in.");
           onBack(); // Go back if no user

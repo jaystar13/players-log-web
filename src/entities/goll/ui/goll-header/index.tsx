@@ -8,6 +8,9 @@ type GollHeaderProps = {
 };
 
 export const GollHeader = ({ goll: goll }: GollHeaderProps) => {
+  const displayDate = goll.matchDate ? goll.matchDate.split('T')[0] : 'No Date';
+  const displayTime = goll.matchDate ? goll.matchDate.split('T')[1].substring(0, 5) : '--:--';
+
   return (
     <div className="space-y-4 relative">
       <div className="flex items-center gap-3">
@@ -35,9 +38,9 @@ export const GollHeader = ({ goll: goll }: GollHeaderProps) => {
       <div className="flex flex-wrap gap-4 text-slate-600 pt-2">
         <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-lg border border-slate-200 shadow-sm">
           <Calendar className="w-4 h-4 text-[#1A237E]" />
-          <span className="font-semibold text-sm">{goll.date || 'No Date'}</span>
+          <span className="font-semibold text-sm">{displayDate}</span>
           <span className="text-slate-300">|</span>
-          <span className="font-semibold text-sm">{goll.time || '--:--'}</span>
+          <span className="font-semibold text-sm">{displayTime}</span>
         </div>
         <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-lg border border-slate-200 shadow-sm">
           <MapPin className="w-4 h-4 text-[#1A237E]" />

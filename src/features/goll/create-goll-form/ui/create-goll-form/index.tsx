@@ -63,6 +63,7 @@ export const CreateGollForm = ({ initialData, onSubmit, onBack }: CreateGollForm
       <div className="fixed inset-0 z-50 bg-white overflow-y-auto">
         <GollDetailPage 
           onBack={() => setShowPreview(false)} 
+          gollId={0}
           previewData={getPreviewData}
         />
       </div>
@@ -129,7 +130,7 @@ export const CreateGollForm = ({ initialData, onSubmit, onBack }: CreateGollForm
                       <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                       <input 
                         type="date"
-                        value={date}
+                        value={date || ''}
                         onChange={(e) => setDate(e.target.value)}
                         className="w-full bg-slate-50 border border-slate-200 text-slate-700 rounded-lg pl-10 pr-3 py-3 text-sm focus:ring-2 focus:ring-[#1A237E] outline-none"
                       />
@@ -141,7 +142,7 @@ export const CreateGollForm = ({ initialData, onSubmit, onBack }: CreateGollForm
                       <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                       <input 
                         type="time"
-                        value={time}
+                        value={time || ''}
                         onChange={(e) => setTime(e.target.value)}
                         className="w-full bg-slate-50 border border-slate-200 text-slate-700 rounded-lg pl-10 pr-3 py-3 text-sm focus:ring-2 focus:ring-[#1A237E] outline-none"
                       />
@@ -263,7 +264,7 @@ export const CreateGollForm = ({ initialData, onSubmit, onBack }: CreateGollForm
                               {participants.length > 0 ? participants.map((p, idx) => (
                                 <span key={idx} className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-white text-slate-700 border border-slate-200 shadow-sm">
                                   {participantUnit === 'individual' ? <User className="w-3 h-3 mr-1.5 text-slate-400" /> : <Shield className="w-3 h-3 mr-1.5 text-slate-400" />}
-                                  {p}
+                                  {p.name}
                                   <button onClick={() => removeParticipant(idx)} className="ml-2 text-slate-300 hover:text-red-500 transition-colors">
                                     <X className="w-3 h-3" />
                                   </button>
@@ -460,7 +461,7 @@ export const CreateGollForm = ({ initialData, onSubmit, onBack }: CreateGollForm
                             <span className="text-[10px] font-bold text-[#1A237E] bg-[#E1F5FE] px-2 py-0.5 rounded">
                               {goll.sport}
                             </span>
-                            <span className="text-xs text-slate-400">{goll.date}</span>
+                            <span className="text-xs text-slate-400">{goll.matchDate}</span>
                           </div>
                           
                           <h4 className="font-bold text-slate-800 text-sm mb-1">{goll.title}</h4>

@@ -8,7 +8,7 @@ interface GollFeedProps {
   golls: Goll[];
   isLoading: boolean;
   activeCategory: string;
-  onGollClick: (id: number) => void;
+  onGollClick: (id: number | string) => void;
   onNavigate: (screen: Screen) => void;
 }
 

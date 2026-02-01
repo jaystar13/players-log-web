@@ -5,13 +5,13 @@ import { Skeleton } from '@/shared/ui/skeleton';
 interface ProfileCardProps {
   userProfile: {
     name: string;
-    role: string;
-    avatar: string;
-    socials: {
+    description: string;
+    profileImageUrl: string;
+    socialLinks?: {
       instagram?: string;
       youtube?: string;
       threads?: string;
-      twitter?: string;
+      x?: string;
     };
     stats: {
       created: number;
@@ -50,7 +50,7 @@ export const ProfileCard = ({ userProfile, onEditClick }: ProfileCardProps) => {
     <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm text-center relative overflow-hidden">
       <div className="relative inline-block mb-4">
         <img 
-          src={userProfile.avatar} 
+          src={userProfile.profileImageUrl} 
           alt={userProfile.name} 
           className="w-24 h-24 rounded-full object-cover border-4 border-[#E1F5FE] bg-slate-100"
         />
@@ -63,27 +63,27 @@ export const ProfileCard = ({ userProfile, onEditClick }: ProfileCardProps) => {
       </div>
       
       <h2 className="text-xl font-bold text-slate-900 truncate px-2">{userProfile.name}</h2>
-      <p className="text-sm text-slate-500 mb-4 line-clamp-2 px-2">{userProfile.role}</p>
+      <p className="text-sm text-slate-500 mb-4 line-clamp-2 px-2">{userProfile.description || 'No description provided'}</p>
 
-      {userProfile.socials && Object.values(userProfile.socials).some(Boolean) && (
+      {userProfile.socialLinks && Object.values(userProfile.socialLinks).some(Boolean) && (
         <div className="flex justify-center gap-3 mb-5">
-          {userProfile.socials.instagram && (
-            <a href={userProfile.socials.instagram.startsWith('http') ? userProfile.socials.instagram : `https://instagram.com/${userProfile.socials.instagram}`} target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-pink-600 transition-colors">
+          {userProfile.socialLinks.instagram && (
+            <a href={userProfile.socialLinks.instagram.startsWith('http') ? userProfile.socialLinks.instagram : `https://instagram.com/${userProfile.socialLinks.instagram}`} target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-pink-600 transition-colors">
               <Instagram className="w-4 h-4" />
             </a>
           )}
-          {userProfile.socials.youtube && (
-            <a href={userProfile.socials.youtube.startsWith('http') ? userProfile.socials.youtube : `https://youtube.com/${userProfile.socials.youtube}`} target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-red-600 transition-colors">
+          {userProfile.socialLinks.youtube && (
+            <a href={userProfile.socialLinks.youtube.startsWith('http') ? userProfile.socialLinks.youtube : `https://youtube.com/${userProfile.socialLinks.youtube}`} target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-red-600 transition-colors">
               <Youtube className="w-4 h-4" />
             </a>
           )}
-          {userProfile.socials.threads && (
-            <a href={userProfile.socials.threads.startsWith('http') ? userProfile.socials.threads : `https://threads.net/${userProfile.socials.threads}`} target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-slate-900 transition-colors">
+          {userProfile.socialLinks.threads && (
+            <a href={userProfile.socialLinks.threads.startsWith('http') ? userProfile.socialLinks.threads : `https://threads.net/@${userProfile.socialLinks.threads.replace('@', '')}`} target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-slate-900 transition-colors">
               <AtSign className="w-4 h-4" />
             </a>
           )}
-          {userProfile.socials.twitter && (
-            <a href={userProfile.socials.twitter.startsWith('http') ? userProfile.socials.twitter : `https://twitter.com/${userProfile.socials.twitter}`} target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-blue-400 transition-colors">
+          {userProfile.socialLinks.x && (
+            <a href={userProfile.socialLinks.x.startsWith('http') ? userProfile.socialLinks.x : `https://twitter.com/${userProfile.socialLinks.x.replace('@', '')}`} target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-blue-400 transition-colors">
               <Twitter className="w-4 h-4" />
             </a>
           )}

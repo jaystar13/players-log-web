@@ -1,13 +1,14 @@
 // src/features/goll/create-goll-form/model/types.ts
 
 // Type for a single participant in the form
-export type ParticipantInput = { id?: string; name: string; type: 'individual' | 'team'; votes: number };
+export type ParticipantInput = { id?: string; name: string; type: 'individual' | 'team'; votes: number; displayOrder: number };
 
 // Type for the form data structure
 export interface GollFormData {
-  id?: number;
+  id?: number | string;
   title: string;
   sport: string;
+  // matchDate: string;
   date: string;
   time: string;
   venue: string;
@@ -53,20 +54,3 @@ export const SPORTS_CATEGORIES = [
   "Nordic Combined"
 ];
 
-// Type for the mock logs (if still needed)
-export const MOCK_LOGS = [
-  { 
-    id: 101, 
-    title: "Men's 1000m Qualifier", 
-    sport: "Short Track",
-    author: "Official_KR", 
-    date: "2026-01-20", 
-    venue: "Ice Arena A",
-    teams: "Team A vs Team B",
-    owner: { name: "Official_KR", avatar: ""},
-    preview: "Mock preview",
-    likes: 0,
-    hasVideo: false,
-    hasLink: false
-  }
-];

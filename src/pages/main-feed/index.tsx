@@ -10,13 +10,16 @@ import { Screen } from '@/shared/lib/navigation';
 
 interface MainFeedPageProps {
   onNavigate: (screen: Screen, params?: any) => void;
-  onGollClick: (id: number) => void;
+  onGollClick: (id: number | string) => void;
 }
 
 export default function MainFeedPage({ onNavigate, onGollClick }: MainFeedPageProps) {
   const [activeCategory, setActiveCategory] = useState("All");
-  const { golls: golls, loading: isLoading, error } = useGolls();
+  const { golls, loading: isLoading, error, hasMore, loadMore } = useGolls();
 
+  // TODO: Client-side filtering is not ideal with pagination.
+  // The activeCategory should be passed to the `useGolls` hook 
+  // to be used in the API request for backend filtering.
   const filteredGolls = activeCategory === "All" 
     ? golls 
     : golls.filter(goll => goll.sport === activeCategory);
@@ -38,17 +41,29 @@ export default function MainFeedPage({ onNavigate, onGollClick }: MainFeedPagePr
             {activeCategory === "All" ? "Recent Match Logs" : `${activeCategory} Logs`}
           </h2>
           <span className="text-sm text-slate-500">
-            {isLoading ? "Loading..." : `Showing ${filteredGolls.length} results`}
+            {golls.length > 0 && `Showing ${golls.length} results`}
           </span>
         </div>
 
         <GollFeed 
           golls={filteredGolls}
-          isLoading={isLoading}
+          isLoading={isLoading && golls.length === 0} // Show skeleton only on initial load
           activeCategory={activeCategory}
           onGollClick={onGollClick}
           onNavigate={onNavigate}
         />
+
+        <div className="mt-8 text-center">
+          {hasMore && (
+            <button
+              onClick={loadMore}
+              disabled={isLoading}
+              className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-blue-300"
+            >
+              {isLoading ? "Loading..." : "Load More"}
+            </button>
+          )}
+        </div>
       </main>
 
       {/* Floating Action Button for Mobile only */}

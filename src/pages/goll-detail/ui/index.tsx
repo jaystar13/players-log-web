@@ -13,12 +13,11 @@ const DEFAULT_LOG_DATA: Partial<Goll> = {
   id: 0,
   sport: "Unknown",
   title: "Log Not Found",
-  date: "",
+  matchDate: "",
   venue: "",
-  teams: "",
   matchType: "vs",
   participants: [],
-  owner: { name: "Unknown", avatar: "" },
+  owner: { name: "Unknown", profileImageUrl: "" },
   description: "This log could not be loaded.",
   stats: { likes: 0, views: 0 },
   isArchived: false,
@@ -27,7 +26,7 @@ const DEFAULT_LOG_DATA: Partial<Goll> = {
 
 interface GollDetailPageProps {
   onBack: () => void;
-  gollId?: number | string;
+  gollId: number | string;
   previewData?: Partial<Goll>;
   onEdit?: (gollData: Goll) => void;
 }
@@ -46,10 +45,10 @@ export default function GollDetailPage({ onBack, gollId: gollId, previewData, on
     const fetchData = async () => {
       try {
         setLoading(true);
-        const golls = await api.getGolls(); // In a real app, this would be api.getLogById(logId)
-        const foundGoll = golls.find((l: any) => l.id == gollId);
+        const foundGoll = await api.getGollById(gollId);
 
         if (foundGoll) {
+          // Ensure all fields expected by the UI are present or have default values
           const uiLog = {
             ...foundGoll,
             matchType: foundGoll.matchType || 'vs',
@@ -61,7 +60,8 @@ export default function GollDetailPage({ onBack, gollId: gollId, previewData, on
               thumbnail: '',
             })),
             description: foundGoll.description,
-            stats: { likes: foundGoll.likes || 0, views: 0 },
+            // Assuming backend provides 'likes' and 'views' or they are handled elsewhere
+            stats: foundGoll.stats || { likes: 0, views: 0 },
             isArchived: foundGoll.isArchived || false,
           };
           setGoll(uiLog);
@@ -151,7 +151,7 @@ export default function GollDetailPage({ onBack, gollId: gollId, previewData, on
             <GollDetailCard goll={goll} />
           </div>
           <div className="lg:col-span-4">
-            <GollInteractionSidebar goll={goll} />
+            <GollInteractionSidebar goll={goll} initialIsLiked={goll.isLiked || false} />
           </div>
         </div>
       </main>
