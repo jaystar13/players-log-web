@@ -1,11 +1,14 @@
 import { Bell, Plus, Search } from 'lucide-react';
 import { Screen } from '@/shared/lib/navigation';
+import { UserProfile } from '@/entities/user/model/types'; // Import UserProfile type
 
 interface HeaderProps {
   onNavigate: (screen: Screen, params?: any) => void;
+  userProfile: UserProfile | null;
 }
 
-export const Header = ({ onNavigate }: HeaderProps) => {
+export const Header = ({ onNavigate, userProfile }: HeaderProps) => {
+  const profileImage = userProfile?.profileImageUrl || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=100&h=100";
   return (
     <header className="sticky top-0 z-30 bg-white border-b border-slate-200 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-8">
@@ -51,7 +54,7 @@ export const Header = ({ onNavigate }: HeaderProps) => {
             className="flex items-center gap-3 pl-2 cursor-pointer hover:opacity-80 transition-opacity"
           >
             <img 
-              src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=100&h=100" 
+              src={profileImage}
               alt="Profile" 
               className="w-9 h-9 rounded-full border border-slate-200"
             />

@@ -7,6 +7,7 @@ import { api } from '@/shared/api';
 import { GollDetailCard } from '@/widgets/goll-detail-card/ui';
 import { GollInteractionSidebar } from '@/widgets/goll-interaction-sidebar/ui';
 import { ManageGoll } from '@/features/manage-goll/ui';
+import { Screen } from '@/shared/lib/navigation';
 
 // Fallback data
 const DEFAULT_LOG_DATA: Partial<Goll> = {
@@ -17,10 +18,10 @@ const DEFAULT_LOG_DATA: Partial<Goll> = {
   venue: "",
   matchType: "vs",
   participants: [],
-  owner: { name: "Unknown", profileImageUrl: "" },
+  owner: { id: 0, name: "Unknown", profileImageUrl: "" },
   description: "This log could not be loaded.",
   stats: { likes: 0, views: 0 },
-  isArchived: false,
+  status: 'ACTIVE',
   media: [],
 };
 
@@ -29,9 +30,10 @@ interface GollDetailPageProps {
   gollId: number | string;
   previewData?: Partial<Goll>;
   onEdit?: (gollData: Goll) => void;
+  onNavigate: (screen: Screen, params?: any) => void;
 }
 
-export default function GollDetailPage({ onBack, gollId: gollId, previewData, onEdit = () => {} }: GollDetailPageProps) {
+export default function GollDetailPage({ onBack, gollId: gollId, previewData, onEdit = () => {}, onNavigate }: GollDetailPageProps) {
   const [goll, setGoll] = useState<Partial<Goll> | null>(previewData || null);
   const [loading, setLoading] = useState(!previewData);
 
@@ -46,7 +48,7 @@ export default function GollDetailPage({ onBack, gollId: gollId, previewData, on
       try {
         setLoading(true);
         const foundGoll = await api.getGollById(gollId);
-
+        
         if (foundGoll) {
           // Ensure all fields expected by the UI are present or have default values
           const uiLog = {
@@ -62,7 +64,7 @@ export default function GollDetailPage({ onBack, gollId: gollId, previewData, on
             description: foundGoll.description,
             // Assuming backend provides 'likes' and 'views' or they are handled elsewhere
             stats: foundGoll.stats || { likes: 0, views: 0 },
-            isArchived: foundGoll.isArchived || false,
+            status: foundGoll.status || 'ACTIVE',
           };
           setGoll(uiLog);
         } else {
@@ -81,9 +83,27 @@ export default function GollDetailPage({ onBack, gollId: gollId, previewData, on
     }
   }, [gollId, previewData]);
 
-  const handleArchive = (isArchived: boolean) => {
-    setGoll(prevGoll => prevGoll ? { ...prevGoll, isArchived } : null);
-    alert(isArchived ? "Log archived." : "Log unarchived.");
+  const handleArchive = async (archive: boolean) => {
+    if (!goll?.id) return;
+    try {
+      const newStatus = archive ? 'ARCHIVED' : 'ACTIVE';
+      const updatedGoll = await api.patchGoll(goll.id, { status: newStatus });
+      // Re-construct the media field
+      const updatedGollWithMedia = {
+        ...updatedGoll,
+        media: updatedGoll.media || (updatedGoll.previewLinks || []).map((link: string, idx: number) => ({
+          type: link.includes('youtube') ? 'video' : 'article',
+          title: `Linked Resource ${idx + 1}`,
+          url: link,
+          thumbnail: '',
+        })),
+      };
+      setGoll(updatedGollWithMedia);
+      alert(archive ? "Log archived." : "Log unarchived.");
+    } catch (error) {
+      console.error("Failed to update archive status:", error);
+      alert("Failed to update archive status. Please try again.");
+    }
   }
 
   const handleDelete = () => {
@@ -107,7 +127,7 @@ export default function GollDetailPage({ onBack, gollId: gollId, previewData, on
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] pb-20 relative">
-      {goll.isArchived && (
+      {goll.status === 'ARCHIVED' && (
         <div className="bg-slate-800 text-white text-center py-2 px-4 text-sm font-bold sticky top-16 z-20 flex items-center justify-center gap-2">
           Archived
         </div>
@@ -134,9 +154,10 @@ export default function GollDetailPage({ onBack, gollId: gollId, previewData, on
             <button className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-full transition-colors">
               <Share2 className="w-5 h-5" />
             </button>
-            <ManageGoll 
-              goll={goll} 
-              onEdit={onEdit} 
+            <ManageGoll
+              goll={goll}
+              isOwner={goll.isOwner || false}
+              onEdit={onEdit}
               onArchive={handleArchive}
               onDelete={handleDelete}
               onReport={handleReport}
@@ -148,7 +169,7 @@ export default function GollDetailPage({ onBack, gollId: gollId, previewData, on
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           <div className="lg:col-span-8">
-            <GollDetailCard goll={goll} />
+            <GollDetailCard goll={goll} onNavigate={onNavigate} />
           </div>
           <div className="lg:col-span-4">
             <GollInteractionSidebar goll={goll} initialIsLiked={goll.isLiked || false} />

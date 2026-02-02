@@ -7,10 +7,21 @@ import { Calendar, Heart, User, ArrowRight } from 'lucide-react'; // 기존 luci
 interface MyGollListItemProps {
   goll: Goll;
   activeTab: 'created' | 'liked';
-  onNavigateToDetail: (id: number) => void;
+  onNavigateToDetail: (id: number | string) => void;
 }
 
 export const MyGollListItem = forwardRef<HTMLDivElement, MyGollListItemProps>(({ goll: goll, activeTab, onNavigateToDetail }, ref) => {
+  const statusStyles: { [key: string]: string } = {
+    ACTIVE: "bg-emerald-50 text-emerald-600",
+    ARCHIVED: "bg-amber-50 text-amber-700",
+    DELETED: "bg-red-50 text-red-600",
+  };
+  const statusText: { [key: string]: string } = {
+    ACTIVE: "Published",
+    ARCHIVED: "Archived",
+    DELETED: "Deleted",
+  }
+
   return (
     <motion.div
       ref={ref} // ref를 motion.div에 전달
@@ -32,14 +43,14 @@ export const MyGollListItem = forwardRef<HTMLDivElement, MyGollListItemProps>(({
             </span>
             <span className="text-xs text-slate-400 flex items-center gap-1">
               <Calendar className="w-3 h-3" />
-              {goll.date}
+              {goll.matchDate.split('T')[0]}
             </span>
-            {activeTab === 'created' && (
+            {goll.status && (
               <span className={cn(
                 "px-2 py-0.5 rounded text-[10px] font-bold uppercase",
-                "bg-emerald-50 text-emerald-600"
+                statusStyles[goll.status] || "bg-slate-100 text-slate-600"
               )}>
-                Published
+                {statusText[goll.status] || goll.status}
               </span>
             )}
           </div>
@@ -49,10 +60,10 @@ export const MyGollListItem = forwardRef<HTMLDivElement, MyGollListItemProps>(({
           </h3>
           
           <div className="flex items-center gap-4 mt-3">
-            {goll.teams && (
+            {goll.participants && (
               <div className="flex items-center gap-1.5 text-xs text-rose-500 font-medium bg-rose-50 px-2 py-1 rounded-md">
                 <Heart className="w-3 h-3 fill-rose-500" />
-                Match: {goll.teams}
+                Match: {goll.participants.map(p => p.name).join(", ")}
               </div>
             )}
             {activeTab === 'liked' && (

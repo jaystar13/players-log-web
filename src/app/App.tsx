@@ -10,12 +10,15 @@ import LoginCallbackPage from '@/pages/login-callback'; // Import LoginCallbackP
 import { Screen } from '@/shared/lib/navigation';
 import { api } from '@/shared/api';
 import { tokenStore } from '@/shared/auth/tokenStore';
+import { UserProfile } from '@/entities/user/model/types'; // Import UserProfile type
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState<Screen>('login');
   const [selectedGollId, setSelectedGollId] = useState<number | undefined>(undefined);
+  const [selectedUserId, setSelectedUserId] = useState<number | undefined>(undefined);
   const [editingGoll, setEditingGoll] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null); // New state for user profile
 
   // Check for existing session on app startup
   useEffect(() => {
@@ -29,11 +32,10 @@ export default function App() {
 
     const verifySession = async () => {
       try {
-        // This call will succeed if the HttpOnly refresh token cookie is valid
-        await api.getCurrentUserProfile();
+        const profile = await api.getCurrentUserProfile(); // Fetch user profile
+        setUserProfile(profile); // Store user profile
         setCurrentScreen('feed');
       } catch (e) {
-        // If session check fails, ensure we are on the login screen
         setCurrentScreen('login');
       } finally {
         setIsLoading(false);
@@ -46,6 +48,11 @@ export default function App() {
   const navigateTo = (screen: Screen, params?: any) => {
     if (screen === 'detail' && params?.id) {
       setSelectedGollId(params.id);
+    }
+    if (screen === 'mypage' && params?.userId) {
+      setSelectedUserId(params.userId);
+    } else {
+      setSelectedUserId(undefined); // Reset when navigating away
     }
     setCurrentScreen(screen);
     window.scrollTo(0, 0);
@@ -60,8 +67,15 @@ export default function App() {
     navigateTo('detail', { id });
   };
 
-  const handleLoginSuccess = () => {
-    setCurrentScreen('feed');
+  const handleLoginSuccess = async () => {
+    try {
+      const profile = await api.getCurrentUserProfile();
+      setUserProfile(profile);
+      setCurrentScreen('feed');
+    } catch (e) {
+      console.error("Failed to fetch user profile after login:", e);
+      setCurrentScreen('login');
+    }
   };
 
   if (isLoading) {
@@ -81,39 +95,40 @@ export default function App() {
       )}
 
       {currentScreen === 'feed' && (
-        <MainFeedPage onNavigate={navigateTo} onGollClick={handleGollClick} />
+        <MainFeedPage onNavigate={navigateTo} onGollClick={handleGollClick} userProfile={userProfile} />
       )}
       
-      {currentScreen === 'create' && (
-        <CreateGollPage 
-          onBack={() => navigateTo('feed')} 
-          onNavigate={navigateTo}
-        />
-      )}
-
-      {currentScreen === 'edit' && (
-        <EditGollPage 
-          onBack={() => navigateTo('detail', { id: editingGoll?.id })} 
-          onNavigate={navigateTo}
-          initialData={editingGoll}
-        />
-      )}
-
+            {currentScreen === 'create' && (
+              <CreateGollPage
+                onBack={() => navigateTo('feed')}
+                onNavigate={navigateTo}
+                userProfile={userProfile}
+              />
+            )}
+            {currentScreen === 'edit' && (
+              <EditGollPage
+                onBack={() => navigateTo('detail', { id: editingGoll?.id })}
+                onNavigate={navigateTo}
+                initialData={editingGoll}
+                userProfile={userProfile}
+              />
+            )}
       {currentScreen === 'detail' && (
-        <GollDetailPage 
-          onBack={() => navigateTo('feed')} 
+        <GollDetailPage
+          onBack={() => navigateTo('feed')}
           gollId={selectedGollId ? selectedGollId : 0}
           onEdit={handleEditClick}
-        />
-      )}
-
-      {currentScreen === 'mypage' && (
-        <MyPage 
-          onBack={() => navigateTo('feed')}
           onNavigate={navigateTo}
         />
       )}
 
+            {currentScreen === 'mypage' && (
+              <MyPage
+                onBack={() => navigateTo('feed')}
+                onNavigate={navigateTo}
+                userId={selectedUserId}
+              />
+            )}
       {currentScreen === 'login-callback' && (
         <LoginCallbackPage onLoginSuccess={handleLoginSuccess} />
       )}

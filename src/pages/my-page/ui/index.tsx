@@ -13,37 +13,49 @@ import { tokenStore } from '@/shared/auth/tokenStore';
 interface MyPageProps {
   onBack: () => void;
   onNavigate: (screen: Screen, params?: any) => void;
+  userId?: number; // The ID of the user whose page to display
 }
 
-export default function MyPage({ onBack, onNavigate }: MyPageProps) {
+export default function MyPage({ onBack, onNavigate, userId }: MyPageProps) {
   const [activeTab, setActiveTab] = useState<'created' | 'liked'>('created');
-  const [allGolls, setAllGolls] = useState<Goll[]>([]);
+  const [createdGolls, setCreatedGolls] = useState<Goll[]>([]);
+  const [likedGolls, setLikedGolls] = useState<Goll[]>([]);
   const [loading, setLoading] = useState(true);
   
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [isMyProfile, setIsMyProfile] = useState(false);
   const [showEditProfile, setShowEditProfile] = useState(false);
 
   const fetchData = async () => {
     try {
       setLoading(true);
       
-      // Fetch user profile and golls in parallel
-      const [userProfileData, gollsData] = await Promise.all([
-        api.getCurrentUserProfile(),
-        api.getGolls()
+      let profile: UserProfile;
+      if (userId) {
+        // Fetch specific user's profile if userId is provided
+        profile = await api.getUserProfile(userId);
+      } else {
+        // Fetch current user's profile
+        profile = await api.getCurrentUserProfile();
+        setIsMyProfile(true);
+      }
+      setUserProfile(profile);
+
+      // Fetch golls for the determined user ID
+      const [createdData, likedData] = await Promise.all([
+        api.getGollsForUser(profile.id, 'created'),
+        api.getGollsForUser(profile.id, 'liked')
       ]);
 
-      if (userProfileData) {
-        setUserProfile(userProfileData);
+      if (createdData?.content) {
+        setCreatedGolls(createdData.content);
       }
-
-      if (gollsData && gollsData.content) {
-        setAllGolls(gollsData.content);
+      if (likedData?.content) {
+        setLikedGolls(likedData.content);
       }
 
     } catch (error) {
-      console.error("Failed to fetch data:", error);
-      // Optional: handle error state, e.g., show an error message
+      console.error("Failed to fetch data for MyPage:", error);
     } finally {
       setLoading(false);
     }
@@ -51,16 +63,16 @@ export default function MyPage({ onBack, onNavigate }: MyPageProps) {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [userId]);
 
   const handleSignOut = async () => {
     try {
-      await logout(); // Call backend to invalidate session/cookie
+      await logout();
     } catch (error) {
       console.error("Failed to sign out from backend", error);
     } finally {
-      tokenStore.clear(); // Clear token from frontend
-      onNavigate('login'); // Navigate to login screen
+      tokenStore.clear();
+      onNavigate('login');
     }
   };
   
@@ -91,16 +103,20 @@ export default function MyPage({ onBack, onNavigate }: MyPageProps) {
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
-            <h1 className="text-xl font-bold text-slate-800">My Archives</h1>
+            <h1 className="text-xl font-bold text-slate-800">
+              {isMyProfile ? "My Archives" : `${userProfile?.name || 'User'}'s Archives`}
+            </h1>
           </div>
           
-          <button 
-            onClick={handleSignOut}
-            className="flex items-center gap-2 text-slate-500 hover:text-slate-800 text-sm font-medium transition-colors"
-          >
-            <LogOut className="w-4 h-4" />
-            Sign Out
-          </button>
+          {isMyProfile && (
+            <button 
+              onClick={handleSignOut}
+              className="flex items-center gap-2 text-slate-500 hover:text-slate-800 text-sm font-medium transition-colors"
+            >
+              <LogOut className="w-4 h-4" />
+              Sign Out
+            </button>
+          )}
         </div>
       </header>
 
@@ -116,9 +132,10 @@ export default function MyPage({ onBack, onNavigate }: MyPageProps) {
               activeTab={activeTab}
               setActiveTab={setActiveTab}
               onEditClick={() => setShowEditProfile(true)}
+              isMyProfile={isMyProfile}
             />
             <MyGollList
-              golls={allGolls} // Simplified: In a real app, you'd fetch liked golls separately
+              golls={activeTab === 'created' ? createdGolls : likedGolls}
               activeTab={activeTab}
               loading={loading}
               onNavigateToDetail={onNavigateToDetail}

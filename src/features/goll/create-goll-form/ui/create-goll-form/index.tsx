@@ -25,13 +25,16 @@ import GollDetailPage from '@/pages/goll-detail/ui';
 import { useCreateGollForm } from '../../lib/use-create-goll-form';
 import { InitialGollFormData } from '../../model/types';
 
+import { Screen } from '@/shared/lib/navigation';
+
 interface CreateGollFormProps {
   initialData?: InitialGollFormData;
   onSubmit: (data: any) => void;
   onBack: () => void;
+  onNavigate: (screen: Screen, params?: any) => void;
 }
 
-export const CreateGollForm = ({ initialData, onSubmit, onBack }: CreateGollFormProps) => {
+export const CreateGollForm = ({ initialData, onSubmit, onBack, onNavigate }: CreateGollFormProps) => {
   const {
     isEditMode,
     title, setTitle,
@@ -61,10 +64,11 @@ export const CreateGollForm = ({ initialData, onSubmit, onBack }: CreateGollForm
   if (showPreview) {
     return (
       <div className="fixed inset-0 z-50 bg-white overflow-y-auto">
-        <GollDetailPage 
-          onBack={() => setShowPreview(false)} 
+        <GollDetailPage
+          onBack={() => setShowPreview(false)}
           gollId={0}
           previewData={getPreviewData}
+          onNavigate={onNavigate}
         />
       </div>
     );

@@ -6,18 +6,15 @@ import React, { useState } from 'react';
 
 type ManageGollProps = {
   goll: Partial<Goll>;
+  isOwner: boolean;
   onEdit: (goll: Goll) => void;
-  // In a real app, these would trigger API calls via a hook
-  onArchive: (isArchived: boolean) => void; 
+  onArchive: (archive: boolean) => void;
   onDelete: () => void;
   onReport: () => void;
 };
 
-export const ManageGoll = ({ goll, onEdit, onArchive, onDelete, onReport }: ManageGollProps) => {
-  const [showMenu, setShowMenu] = useState(false);
-  
-  // In a real app, this would come from an auth context
-  const isOwner = true; 
+export const ManageGoll = ({ goll, isOwner, onEdit, onArchive, onDelete, onReport }: ManageGollProps) => {
+  const [showMenu, setShowMenu] = useState(false); 
 
   const handleEdit = () => {
     setShowMenu(false);
@@ -28,7 +25,7 @@ export const ManageGoll = ({ goll, onEdit, onArchive, onDelete, onReport }: Mana
 
   const handleArchive = () => {
     setShowMenu(false);
-    onArchive(!goll.isArchived);
+    onArchive(goll.status !== 'ARCHIVED');
   };
   
   const handleDelete = () => {
@@ -65,9 +62,10 @@ export const ManageGoll = ({ goll, onEdit, onArchive, onDelete, onReport }: Mana
               className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden z-50 origin-top-right"
             >
               <div className="p-1">
-                <button 
+                <button
                   onClick={handleEdit}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 rounded-lg transition-colors text-left"
+                  disabled={goll.status === 'ARCHIVED'}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 rounded-lg transition-colors text-left disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Edit className="w-4 h-4 text-slate-400" />
                   Edit Log
@@ -76,7 +74,7 @@ export const ManageGoll = ({ goll, onEdit, onArchive, onDelete, onReport }: Mana
                   onClick={handleArchive}
                   className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 rounded-lg transition-colors text-left"
                 >
-                  {goll.isArchived ? (
+                  {goll.status === 'ARCHIVED' ? (
                     <>
                       <Eye className="w-4 h-4 text-slate-400" />
                       Unarchive Log

@@ -8,12 +8,13 @@ interface MyPageSidebarProps {
   activeTab: 'created' | 'liked';
   setActiveTab: (tab: 'created' | 'liked') => void;
   onEditClick: () => void;
+  isMyProfile: boolean;
 }
 
-export const MyPageSidebar = ({ userProfile, activeTab, setActiveTab, onEditClick }: MyPageSidebarProps) => {
+export const MyPageSidebar = ({ userProfile, activeTab, setActiveTab, onEditClick, isMyProfile }: MyPageSidebarProps) => {
   return (
     <aside className="lg:col-span-3 space-y-6">
-      <ProfileCard userProfile={userProfile} onEditClick={onEditClick} />
+      <ProfileCard userProfile={userProfile} onEditClick={onEditClick} isMyProfile={isMyProfile} />
       
       {/* Navigation Menu */}
       <nav className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">

@@ -89,6 +89,11 @@ export const api = {
     return response.data;
   },
 
+  patchGoll: async (id: string | number, data: Partial<Goll>): Promise<Goll> => {
+    const response = await apiClient.patch<Goll>(`/golls/${id}`, data);
+    return response.data;
+  },
+
   likeGoll: async (id: string | number): Promise<{likes: number; liked: boolean;}> => {
     const response = await apiClient.post<{likes: number; liked: boolean;}>(`/golls/${id}/like`);
     return response.data;
@@ -101,6 +106,11 @@ export const api = {
 
   getCurrentUserProfile: async (): Promise<UserProfile> => {
     const response = await apiClient.get<UserProfile>('/users/me');
+    return response.data;
+  },
+
+  getUserProfile: async (userId: number | string): Promise<UserProfile> => {
+    const response = await apiClient.get<UserProfile>(`/users/${userId}`);
     return response.data;
   },
 
@@ -121,6 +131,13 @@ export const api = {
 
   voteForParticipant: async (gollId: number | string, participantId: number | string): Promise<VoteResponse> => {
     const response = await apiClient.post<VoteResponse>(`/golls/${gollId}/participants/${participantId}/vote`);
+    return response.data;
+  },
+
+  getGollsForUser: async (userId: number | string, type: 'created' | 'liked', page = 0, size = 20): Promise<Page<Goll>> => {
+    const response = await apiClient.get<Page<Goll>>(`/users/${userId}/golls`, {
+      params: { type, page, size, sort: 'createdAt,desc' }
+    });
     return response.data;
   },
 };

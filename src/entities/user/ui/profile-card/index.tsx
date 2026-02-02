@@ -19,6 +19,7 @@ interface ProfileCardProps {
     };
   } | null;
   onEditClick: () => void;
+  isMyProfile: boolean;
 }
 
 const ProfileCardSkeleton = () => (
@@ -41,7 +42,7 @@ const ProfileCardSkeleton = () => (
   </div>
 );
 
-export const ProfileCard = ({ userProfile, onEditClick }: ProfileCardProps) => {
+export const ProfileCard = ({ userProfile, onEditClick, isMyProfile }: ProfileCardProps) => {
   if (!userProfile) {
     return <ProfileCardSkeleton />;
   }
@@ -54,12 +55,14 @@ export const ProfileCard = ({ userProfile, onEditClick }: ProfileCardProps) => {
           alt={userProfile.name} 
           className="w-24 h-24 rounded-full object-cover border-4 border-[#E1F5FE] bg-slate-100"
         />
-        <button 
-          onClick={onEditClick}
-          className="absolute bottom-0 right-0 p-1.5 bg-[#1A237E] text-white rounded-full hover:bg-blue-900 transition-colors shadow-md"
-        >
-          <Edit3 className="w-3.5 h-3.5" />
-        </button>
+        {isMyProfile && (
+          <button 
+            onClick={onEditClick}
+            className="absolute bottom-0 right-0 p-1.5 bg-[#1A237E] text-white rounded-full hover:bg-blue-900 transition-colors shadow-md"
+          >
+            <Edit3 className="w-3.5 h-3.5" />
+          </button>
+        )}
       </div>
       
       <h2 className="text-xl font-bold text-slate-900 truncate px-2">{userProfile.name}</h2>

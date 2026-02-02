@@ -15,7 +15,7 @@ export const GollInteractionSidebar = ({ goll: goll, initialIsLiked }: GollInter
           gollId={goll.id!}
           initialLikes={goll.likes || 0}
           initialIsLiked={goll.isLiked || false}
-          isArchived={goll.isArchived}
+          isArchived={goll.status === 'ARCHIVED'}
         />
         {/* Other interaction elements can be added here in the future */}
       </div>

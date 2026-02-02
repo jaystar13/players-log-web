@@ -4,6 +4,7 @@ export interface Participant {
   type: 'individual' | 'team';
   votes?: number;
   isVotedByUser?: boolean;
+  displayOrder?: number;
 }
 
 export interface Goll {
@@ -13,6 +14,7 @@ export interface Goll {
   matchDate: string;
   venue: string;
   owner: {
+    id: number;
     name: string;
     profileImageUrl: string;
     role?: string;
@@ -29,7 +31,8 @@ export interface Goll {
   participants?: Participant[]; // Use the exported Participant type
   createdAt?: string;
   stats?: { likes: number; views: number };
-  isArchived?: boolean;
+  status?: 'ACTIVE' | 'ARCHIVED' | 'DELETED';
+  isOwner?: boolean;
   media?: Array<{ type: string; title: string; url: string; thumbnail: string; }>;
 }
 

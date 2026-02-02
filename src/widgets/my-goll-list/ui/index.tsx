@@ -9,7 +9,7 @@ interface MyGollListProps {
   golls: Goll[];
   activeTab: 'created' | 'liked';
   loading: boolean;
-  onNavigateToDetail: (id: number) => void;
+  onNavigateToDetail: (id: number | string) => void;
 }
 
 export const MyGollList = ({ golls: golls, activeTab, loading, onNavigateToDetail }: MyGollListProps) => {
@@ -18,10 +18,11 @@ export const MyGollList = ({ golls: golls, activeTab, loading, onNavigateToDetai
 
   const getFilteredGolls = () => {
     return golls.filter((goll) => {
+      const lowercasedQuery = searchQuery.toLowerCase();
       const matchesSearch = 
-        (goll.title && goll.title.toLowerCase().includes(searchQuery.toLowerCase())) ||
-        (goll.teams && goll.teams.toLowerCase().includes(searchQuery.toLowerCase())) ||
-        (goll.sport && goll.sport.toLowerCase().includes(searchQuery.toLowerCase()));
+        (goll.title && goll.title.toLowerCase().includes(lowercasedQuery)) ||
+        (goll.participants && goll.participants.some(p => p.name.toLowerCase().includes(lowercasedQuery))) ||
+        (goll.sport && goll.sport.toLowerCase().includes(lowercasedQuery));
 
       const matchesSport = selectedSport ? goll.sport === selectedSport : true;
 

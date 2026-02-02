@@ -10,7 +10,8 @@ type VoteForParticipantProps = {
 };
 
 export const VoteForParticipant = ({ goll }: VoteForParticipantProps) => {
-  const { id: gollId, matchType, participants: initialParticipants, isArchived, userVoteId } = goll;
+  const { id: gollId, matchType, participants: initialParticipants, status, userVoteId } = goll;
+  const isArchived = status === 'ARCHIVED';
   
   const [participants, setParticipants] = useState<Participant[]>(initialParticipants || []);
   const [votedParticipantId, setVotedParticipantId] = useState<number | string | null>(userVoteId || null);

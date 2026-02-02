@@ -8,7 +8,7 @@ export interface GollFormData {
   id?: number | string;
   title: string;
   sport: string;
-  // matchDate: string;
+  matchDate?: string;
   date: string;
   time: string;
   venue: string;

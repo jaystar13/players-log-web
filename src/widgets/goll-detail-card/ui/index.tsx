@@ -5,21 +5,25 @@ import { GollOwner } from '@/entities/goll/ui/goll-owner';
 import { GollDescription } from '@/entities/goll/ui/goll-description';
 import { GollMedia } from '@/entities/goll/ui/goll-media';
 import { VoteForParticipant } from '@/features/vote-for-participant/ui';
+import { cn } from '@/shared/ui/utils';
+import { Screen } from '@/shared/lib/navigation';
 
 interface GollDetailCardProps {
   goll: Partial<Goll>;
+  onNavigate: (screen: Screen, params?: any) => void;
 }
 
-export const GollDetailCard = ({ goll }: GollDetailCardProps) => {
+export const GollDetailCard = ({ goll, onNavigate }: GollDetailCardProps) => {
+  const isArchived = goll.status === 'ARCHIVED';
   return (
-    <article className="space-y-8">
+    <article className={cn("space-y-8", isArchived && "grayscale opacity-60")}>
       <GollHeader goll={goll} />
       
       <VoteForParticipant goll={goll} />
 
       <div className="border-b border-slate-200" />
 
-      <GollOwner owner={goll.owner} />
+      <GollOwner owner={goll.owner} onNavigate={onNavigate} />
 
       <GollDescription description={goll.description || ''} />
 

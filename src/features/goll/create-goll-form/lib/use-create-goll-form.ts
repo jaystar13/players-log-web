@@ -12,8 +12,8 @@ export const useCreateGollForm = (initialData?: InitialGollFormData) => {
   // -- State Initialization --
   const [title, setTitle] = useState(initialData?.title || "");
   const [sport, setSport] = useState(initialData?.sport || SPORTS_CATEGORIES[0]);
-  const [date, setDate] = useState(initialData?.date);
-  const [time, setTime] = useState(initialData?.time);
+  const [date, setDate] = useState(getInitialDate(initialData?.matchDate));
+  const [time, setTime] = useState(getInitialTime(initialData?.matchDate));
   const [venue, setVenue] = useState(initialData?.venue || "");
   const [description, setDescription] = useState(initialData?.description || "");
   
@@ -32,7 +32,12 @@ export const useCreateGollForm = (initialData?: InitialGollFormData) => {
   // Multi Mode / List Participants
   const [participants, setParticipants] = useState<ParticipantInput[]>(
     initialData?.matchType === 'multi' && initialData.participants
-      ? initialData.participants.map(p => ({...p, votes: p.votes || 0, displayOrder: p.displayOrder || 0})) // Ensure displayOrder is present
+      ? initialData.participants.map((p, idx) => ({
+        ...p,
+        type: p.type || initialData.participantUnit || 'individual',
+        votes: p.votes || 0,
+        displayOrder: p.displayOrder ?? idx,
+      }))
       : []
   );
   const [newParticipant, setNewParticipant] = useState("");
@@ -58,8 +63,8 @@ export const useCreateGollForm = (initialData?: InitialGollFormData) => {
       // Basic fields
       setTitle(initialData.title || "");
       setSport(initialData.sport || SPORTS_CATEGORIES[0]);
-      setDate(initialData.date);
-      setTime(initialData.time);
+      setDate(getInitialDate(initialData.matchDate));
+      setTime(getInitialTime(initialData.matchDate));
       setVenue(initialData.venue || "");
       setDescription(initialData.description || "");
       setMatchType(initialData.matchType || 'vs');
@@ -119,6 +124,7 @@ export const useCreateGollForm = (initialData?: InitialGollFormData) => {
       participants: formattedParticipants,
       createdAt: initialData?.createdAt || new Date().toISOString(),
       owner: {
+        id: 0, // Placeholder ID for preview
         name: "You (Preview)",
         role: "Log Creator",
         description: "This is a preview of your bio.",

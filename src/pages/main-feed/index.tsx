@@ -7,21 +7,23 @@ import { CategoryNav } from '@/features/goll/filter-golls/ui/category-nav';
 import { Header } from '@/widgets/header/ui';
 import { GollFeed } from '@/widgets/goll-feed/ui';
 import { Screen } from '@/shared/lib/navigation';
+import { UserProfile } from '@/entities/user/model/types';
 
 interface MainFeedPageProps {
   onNavigate: (screen: Screen, params?: any) => void;
   onGollClick: (id: number | string) => void;
+  userProfile: UserProfile | null;
 }
 
-export default function MainFeedPage({ onNavigate, onGollClick }: MainFeedPageProps) {
+export default function MainFeedPage({ onNavigate, onGollClick, userProfile }: MainFeedPageProps) {
   const [activeCategory, setActiveCategory] = useState("All");
   const { golls, loading: isLoading, error, hasMore, loadMore } = useGolls();
 
   // TODO: Client-side filtering is not ideal with pagination.
-  // The activeCategory should be passed to the `useGolls` hook 
+  // The activeCategory should be passed to the `useGolls` hook
   // to be used in the API request for backend filtering.
-  const filteredGolls = activeCategory === "All" 
-    ? golls 
+  const filteredGolls = activeCategory === "All"
+    ? golls
     : golls.filter(goll => goll.sport === activeCategory);
 
   // You could handle the error state here, e.g. show a toast or an error message
@@ -32,9 +34,9 @@ export default function MainFeedPage({ onNavigate, onGollClick }: MainFeedPagePr
 
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
-      <Header onNavigate={onNavigate} />
+      <Header onNavigate={onNavigate} userProfile={userProfile} />
       <CategoryNav activeCategory={activeCategory} setActiveCategory={setActiveCategory} />
-      
+
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-bold text-slate-800">
@@ -45,7 +47,7 @@ export default function MainFeedPage({ onNavigate, onGollClick }: MainFeedPagePr
           </span>
         </div>
 
-        <GollFeed 
+        <GollFeed
           golls={filteredGolls}
           isLoading={isLoading && golls.length === 0} // Show skeleton only on initial load
           activeCategory={activeCategory}
