@@ -1,5 +1,5 @@
 import apiClient from './client';
-import { Goll } from '@/entities/goll/model/types';
+import { Goll, GollSearchResponse } from '@/entities/goll/model/types';
 import { GollFormData } from '@/features/goll/create-goll-form/model/types';
 import { UserProfile } from '@/entities/user/model/types';
 
@@ -140,4 +140,24 @@ export const api = {
     });
     return response.data;
   },
+
+  searchGolls: async (query: string, scope: 'title' | 'global' = 'title', page = 0, size = 5): Promise<Page<GollSearchResponse>> => {
+    const response = await apiClient.get<Page<GollSearchResponse>>('/golls/search', {
+      params: { q: query, scope, page, size }
+    });
+    return response.data;
+  },
+
+  generateShortUrl: async (gollId: number): Promise<string> => {
+    try {
+      const response = await apiClient.post('/short-urls', { gollId });
+      return response.data;
+    } catch (error) {
+      console.error('Error generating short URL:', error);
+      throw error;
+    }
+  },
+
 };
+
+  

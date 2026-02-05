@@ -8,6 +8,8 @@ import { GollDetailCard } from '@/widgets/goll-detail-card/ui';
 import { GollInteractionSidebar } from '@/widgets/goll-interaction-sidebar/ui';
 import { ManageGoll } from '@/features/manage-goll/ui';
 import { Screen } from '@/shared/lib/navigation';
+import { UserProfile } from '@/entities/user/model/types';
+import { ShareGollModal } from '@/widgets/share-goll-modal/ui/ShareGollModal'; // Import ShareGollModal
 
 // Fallback data
 const DEFAULT_LOG_DATA: Partial<Goll> = {
@@ -31,11 +33,14 @@ interface GollDetailPageProps {
   previewData?: Partial<Goll>;
   onEdit?: (gollData: Goll) => void;
   onNavigate: (screen: Screen, params?: any) => void;
+  userProfile: UserProfile | null;
 }
 
-export default function GollDetailPage({ onBack, gollId: gollId, previewData, onEdit = () => {}, onNavigate }: GollDetailPageProps) {
+export default function GollDetailPage({ onBack, gollId: gollId, previewData, onEdit = () => {}, onNavigate, userProfile }: GollDetailPageProps) {
   const [goll, setGoll] = useState<Partial<Goll> | null>(previewData || null);
   const [loading, setLoading] = useState(!previewData);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [shortenedUrl, setShortenedUrl] = useState('');
 
   useEffect(() => {
     if (previewData) {
@@ -83,6 +88,48 @@ export default function GollDetailPage({ onBack, gollId: gollId, previewData, on
     }
   }, [gollId, previewData]);
 
+  useEffect(() => {
+    if (gollId && !previewData) {
+      const eventSource = new EventSource(`${import.meta.env.VITE_API_BASE}/golls/${gollId}/subscribe`);
+
+      const handleLikeUpdate = (event: MessageEvent) => {
+        const data = JSON.parse(event.data);
+        if (data.gollId.toString() === gollId.toString()) { // Ensure type safety for comparison
+          setGoll(prevGoll => {
+            if (!prevGoll) return null;
+            
+            const updatedParticipants = prevGoll.participants?.map(p => ({
+              ...p,
+              votes: p.id !== undefined ? data.voteCounts[String(p.id)] ?? 0 : p.votes ?? 0,
+            }));
+
+            // Create a new goll object with updated likes and participants
+            const newGoll = {
+              ...prevGoll,
+              likes: data.likes, // Update the top-level likes property
+              participants: updatedParticipants
+            };
+
+            return newGoll;
+          });
+        }
+      };
+
+      eventSource.addEventListener('GOLL_LIKE_UPDATE', handleLikeUpdate);
+      eventSource.addEventListener('VOTE_UPDATE', handleLikeUpdate);
+
+      eventSource.onerror = (error) => {
+        console.error("EventSource failed for gollId:", gollId, error);
+        eventSource.close();
+      };
+
+      return () => {
+        eventSource.close();
+      };
+    }
+  }, [gollId, previewData]);
+
+
   const handleArchive = async (archive: boolean) => {
     if (!goll?.id) return;
     try {
@@ -106,14 +153,48 @@ export default function GollDetailPage({ onBack, gollId: gollId, previewData, on
     }
   }
 
-  const handleDelete = () => {
-    alert("Log deleted (simulation).");
-    onBack();
+  const handleDelete = async () => {
+    if (!goll?.id) return;
+    try {
+      const updatedGoll = await api.patchGoll(goll.id, { status: 'DELETED' });
+      // Re-construct the media field
+      const updatedGollWithMedia = {
+        ...updatedGoll,
+        media: updatedGoll.media || (updatedGoll.previewLinks || []).map((link: string, idx: number) => ({
+          type: link.includes('youtube') ? 'video' : 'article',
+          title: `Linked Resource ${idx + 1}`,
+          url: link,
+          thumbnail: '',
+        })),
+      };
+      setGoll(updatedGollWithMedia);
+      alert("Log deleted successfully.");
+      onBack();
+    } catch (error) {
+      console.error("Failed to delete log:", error);
+      alert("Failed to delete log. Please try again.");
+    }
   }
   
   const handleReport = () => {
     alert("Log reported (simulation).");
   }
+
+  const handleShareClick = async () => {
+    if (!goll?.id) return;
+    try {
+      // Assuming shortUrlApi is defined in @/shared/api/shortUrl.ts
+      // And it returns just the shortCode, which we then prepend with the base URL.
+      const shortCode = await api.generateShortUrl(Number(goll.id)); // Use api.generateShortUrl
+      const fullShortUrl = `${window.location.origin}/s/${shortCode}`; // Construct full URL
+      setShortenedUrl(fullShortUrl);
+      setIsShareModalOpen(true);
+    } catch (error) {
+      console.error("Error generating short URL:", error);
+      alert("Failed to generate short URL. Please try again.");
+    }
+  };
+
 
   if (loading) {
     return (
@@ -151,7 +232,10 @@ export default function GollDetailPage({ onBack, gollId: gollId, previewData, on
           </div>
           
           <div className="flex items-center gap-2">
-            <button className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-full transition-colors">
+            <button 
+              onClick={handleShareClick} // Added onClick handler
+              className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-full transition-colors"
+            >
               <Share2 className="w-5 h-5" />
             </button>
             <ManageGoll
@@ -169,13 +253,20 @@ export default function GollDetailPage({ onBack, gollId: gollId, previewData, on
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           <div className="lg:col-span-8">
-            <GollDetailCard goll={goll} onNavigate={onNavigate} />
+            <GollDetailCard goll={goll} onNavigate={onNavigate} userProfile={userProfile} />
           </div>
           <div className="lg:col-span-4">
-            <GollInteractionSidebar goll={goll} initialIsLiked={goll.isLiked || false} />
+            <GollInteractionSidebar goll={goll} initialIsLiked={goll.isLiked || false} onNavigate={onNavigate} userProfile={userProfile} />
           </div>
         </div>
       </main>
+
+      <ShareGollModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        shortUrl={shortenedUrl}
+      />
     </div>
   );
 }
+

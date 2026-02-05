@@ -11,9 +11,10 @@ import { Screen } from '@/shared/lib/navigation';
 import { api } from '@/shared/api';
 import { tokenStore } from '@/shared/auth/tokenStore';
 import { UserProfile } from '@/entities/user/model/types'; // Import UserProfile type
+import { redirectStore } from '@/shared/auth/redirectStore';
 
 export default function App() {
-  const [currentScreen, setCurrentScreen] = useState<Screen>('login');
+  const [currentScreen, setCurrentScreen] = useState<Screen>('feed');
   const [selectedGollId, setSelectedGollId] = useState<number | undefined>(undefined);
   const [selectedUserId, setSelectedUserId] = useState<number | undefined>(undefined);
   const [editingGoll, setEditingGoll] = useState<any>(null);
@@ -36,7 +37,8 @@ export default function App() {
         setUserProfile(profile); // Store user profile
         setCurrentScreen('feed');
       } catch (e) {
-        setCurrentScreen('login');
+        setUserProfile(null); // Explicitly set user as null
+        setCurrentScreen('feed'); // Proceed to feed for non-logged-in users
       } finally {
         setIsLoading(false);
       }
@@ -71,7 +73,14 @@ export default function App() {
     try {
       const profile = await api.getCurrentUserProfile();
       setUserProfile(profile);
-      setCurrentScreen('feed');
+
+      const redirectInfo = redirectStore.getAndClear();
+      if (redirectInfo) {
+        navigateTo(redirectInfo.screen, redirectInfo.params);
+      } else {
+        // If no redirect info, just go to feed
+        setCurrentScreen('feed');
+      }
     } catch (e) {
       console.error("Failed to fetch user profile after login:", e);
       setCurrentScreen('login');
@@ -91,7 +100,7 @@ export default function App() {
       <Toaster position="top-center" richColors />
       
       {currentScreen === 'login' && (
-        <LoginPage onLoginSuccess={handleLoginSuccess} />
+        <LoginPage onLoginSuccess={handleLoginSuccess} onNavigate={navigateTo} />
       )}
 
       {currentScreen === 'feed' && (
@@ -119,16 +128,18 @@ export default function App() {
           gollId={selectedGollId ? selectedGollId : 0}
           onEdit={handleEditClick}
           onNavigate={navigateTo}
+          userProfile={userProfile}
         />
       )}
 
-            {currentScreen === 'mypage' && (
-              <MyPage
-                onBack={() => navigateTo('feed')}
-                onNavigate={navigateTo}
-                userId={selectedUserId}
-              />
-            )}
+      {currentScreen === 'mypage' && (
+        <MyPage
+          onBack={() => navigateTo('feed')}
+          onNavigate={navigateTo}
+          userId={selectedUserId}
+          userProfile={userProfile}
+        />
+      )}
       {currentScreen === 'login-callback' && (
         <LoginCallbackPage onLoginSuccess={handleLoginSuccess} />
       )}

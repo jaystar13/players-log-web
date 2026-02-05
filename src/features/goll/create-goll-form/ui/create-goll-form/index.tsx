@@ -27,6 +27,12 @@ import { InitialGollFormData } from '../../model/types';
 
 import { Screen } from '@/shared/lib/navigation';
 
+const formatDate = (dateString: string | undefined) => {
+  if (!dateString) return '';
+  // Assuming dateString is like "YYYY-MM-DDTHH:mm:ss"
+  return dateString.split('T')[0];
+};
+
 interface CreateGollFormProps {
   initialData?: InitialGollFormData;
   onSubmit: (data: any) => void;
@@ -49,7 +55,8 @@ export const CreateGollForm = ({ initialData, onSubmit, onBack, onNavigate }: Cr
     competitorA, setCompetitorA,
     competitorB, setCompetitorB,
     participants, setNewParticipant, newParticipant, removeParticipant, handleAddParticipant, handleKeyDownParticipant,
-    similarGolls: similarGolls,
+    similarGolls,
+    isSearching,
     showPreview, setShowPreview,
     getPreviewData,
     getFormDataForSubmit,
@@ -64,13 +71,13 @@ export const CreateGollForm = ({ initialData, onSubmit, onBack, onNavigate }: Cr
   if (showPreview) {
     return (
       <div className="fixed inset-0 z-50 bg-white overflow-y-auto">
-        <GollDetailPage
-          onBack={() => setShowPreview(false)}
-          gollId={0}
-          previewData={getPreviewData}
-          onNavigate={onNavigate}
-        />
-      </div>
+                  <GollDetailPage
+                    onBack={() => setShowPreview(false)}
+                    gollId={0}
+                    previewData={getPreviewData}
+                    onNavigate={onNavigate}
+                    userProfile={null} // Pass null for userProfile in preview mode
+                  />      </div>
     );
   }
 
@@ -451,7 +458,11 @@ export const CreateGollForm = ({ initialData, onSubmit, onBack, onNavigate }: Cr
 
               <div className="p-4 bg-slate-50/50 min-h-[300px]">
                 <AnimatePresence mode="popLayout">
-                  {similarGolls.length > 0 ? (
+                  {isSearching ? (
+                    <div className="flex justify-center items-center h-full py-12">
+                       <Search className="w-6 h-6 text-slate-300 animate-pulse" />
+                    </div>
+                  ) : similarGolls.length > 0 ? (
                     <div className="space-y-3">
                       {similarGolls.map(goll => (
                         <motion.div 
@@ -465,21 +476,28 @@ export const CreateGollForm = ({ initialData, onSubmit, onBack, onNavigate }: Cr
                             <span className="text-[10px] font-bold text-[#1A237E] bg-[#E1F5FE] px-2 py-0.5 rounded">
                               {goll.sport}
                             </span>
-                            <span className="text-xs text-slate-400">{goll.matchDate}</span>
+                            <span className="text-xs text-slate-400">{formatDate(goll.matchDate as string)}</span>
                           </div>
                           
                           <h4 className="font-bold text-slate-800 text-sm mb-1">{goll.title}</h4>
                           
                           <div className="flex items-center gap-1.5 text-xs text-slate-500 mb-3">
                             <User className="w-3 h-3" />
-                            <span>{goll.owner?.name || "Unknown"}</span>
+                            <span>{goll.ownerName || "Unknown"}</span>
                             <span className="mx-1">•</span>
                             <MapPin className="w-3 h-3" />
                             <span className="truncate max-w-[120px]">{goll.venue}</span>
                           </div>
 
-                          <button className="w-full py-2 bg-slate-100 hover:bg-[#1A237E] hover:text-white text-slate-600 text-xs font-bold rounded-lg transition-colors flex items-center justify-center gap-2">
-                            Join this log instead
+                          <button 
+                            onClick={() => {
+                              if (window.confirm("Are you sure you want to discard your current draft and view this log?")) {
+                                onNavigate('detail', { id: goll.id })
+                              }
+                            }}
+                            className="w-full py-2 bg-slate-100 hover:bg-[#1A237E] hover:text-white text-slate-600 text-xs font-bold rounded-lg transition-colors flex items-center justify-center gap-2"
+                          >
+                            Go to this log
                             <ArrowRight className="w-3 h-3" />
                           </button>
                         </motion.div>
@@ -496,7 +514,7 @@ export const CreateGollForm = ({ initialData, onSubmit, onBack, onNavigate }: Cr
                       </div>
                       <h4 className="font-bold text-slate-700 text-sm mb-1">No similar logs yet</h4>
                       <p className="text-xs text-slate-500 leading-relaxed max-w-[200px]">
-                        You are the first to record this match! Go ahead and publish your log.
+                        Keep typing your title to find existing logs, or be the first to record this match!
                       </p>
                     </motion.div>
                   )}

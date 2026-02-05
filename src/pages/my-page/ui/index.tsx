@@ -14,9 +14,10 @@ interface MyPageProps {
   onBack: () => void;
   onNavigate: (screen: Screen, params?: any) => void;
   userId?: number; // The ID of the user whose page to display
+  userProfile: UserProfile | null;
 }
 
-export default function MyPage({ onBack, onNavigate, userId }: MyPageProps) {
+export default function MyPage({ onBack, onNavigate, userId, userProfile: currentUser }: MyPageProps) {
   const [activeTab, setActiveTab] = useState<'created' | 'liked'>('created');
   const [createdGolls, setCreatedGolls] = useState<Goll[]>([]);
   const [likedGolls, setLikedGolls] = useState<Goll[]>([]);
@@ -29,22 +30,27 @@ export default function MyPage({ onBack, onNavigate, userId }: MyPageProps) {
   const fetchData = async () => {
     try {
       setLoading(true);
-      
-      let profile: UserProfile;
-      if (userId) {
-        // Fetch specific user's profile if userId is provided
-        profile = await api.getUserProfile(userId);
-      } else {
-        // Fetch current user's profile
-        profile = await api.getCurrentUserProfile();
-        setIsMyProfile(true);
+      const profileIdToFetch = userId || currentUser?.id;
+
+      if (!profileIdToFetch) {
+        setLoading(false);
+        return; // Cannot determine a profile to fetch
       }
+
+      // Correctly determine if it's the current user's profile
+      const isOwnProfile = currentUser ? currentUser.id === profileIdToFetch : false;
+      setIsMyProfile(isOwnProfile);
+      
+      const profile = await api.getUserProfile(profileIdToFetch);
       setUserProfile(profile);
 
       // Fetch golls for the determined user ID
+      const createdPromise = api.getGollsForUser(profile.id, 'created');
+      const likedPromise = isOwnProfile ? api.getGollsForUser(profile.id, 'liked') : Promise.resolve(null);
+
       const [createdData, likedData] = await Promise.all([
-        api.getGollsForUser(profile.id, 'created'),
-        api.getGollsForUser(profile.id, 'liked')
+        createdPromise,
+        likedPromise
       ]);
 
       if (createdData?.content) {
@@ -63,7 +69,7 @@ export default function MyPage({ onBack, onNavigate, userId }: MyPageProps) {
 
   useEffect(() => {
     fetchData();
-  }, [userId]);
+  }, [userId, currentUser]);
 
   const handleSignOut = async () => {
     try {
@@ -75,8 +81,8 @@ export default function MyPage({ onBack, onNavigate, userId }: MyPageProps) {
       onNavigate('login');
     }
   };
-  
-  const onNavigateToDetail = (id: number) => {
+
+  const onNavigateToDetail = (id: number | string) => {
     onNavigate('detail', { id });
   }
 

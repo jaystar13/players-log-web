@@ -8,6 +8,17 @@ import { Header } from '@/widgets/header/ui';
 import { GollFeed } from '@/widgets/goll-feed/ui';
 import { Screen } from '@/shared/lib/navigation';
 import { UserProfile } from '@/entities/user/model/types';
+import { redirectStore } from '@/shared/auth/redirectStore';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/shared/ui/alert-dialog";
 
 interface MainFeedPageProps {
   onNavigate: (screen: Screen, params?: any) => void;
@@ -17,7 +28,17 @@ interface MainFeedPageProps {
 
 export default function MainFeedPage({ onNavigate, onGollClick, userProfile }: MainFeedPageProps) {
   const [activeCategory, setActiveCategory] = useState("All");
+  const [isCreateAlertOpen, setCreateAlertOpen] = useState(false);
   const { golls, loading: isLoading, error, hasMore, loadMore } = useGolls();
+
+  const handleCreateClick = () => {
+    if (userProfile) {
+      onNavigate('create');
+    } else {
+      redirectStore.set('create');
+      setCreateAlertOpen(true);
+    }
+  };
 
   // TODO: Client-side filtering is not ideal with pagination.
   // The activeCategory should be passed to the `useGolls` hook
@@ -33,50 +54,70 @@ export default function MainFeedPage({ onNavigate, onGollClick, userProfile }: M
   }
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC]">
-      <Header onNavigate={onNavigate} userProfile={userProfile} />
-      <CategoryNav activeCategory={activeCategory} setActiveCategory={setActiveCategory} />
+    <>
+      <div className="min-h-screen bg-[#F8FAFC]">
+        <Header onNavigate={onNavigate} userProfile={userProfile} />
+        <CategoryNav activeCategory={activeCategory} setActiveCategory={setActiveCategory} />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-slate-800">
-            {activeCategory === "All" ? "Recent Match Logs" : `${activeCategory} Logs`}
-          </h2>
-          <span className="text-sm text-slate-500">
-            {golls.length > 0 && `Showing ${golls.length} results`}
-          </span>
-        </div>
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-bold text-slate-800">
+              {activeCategory === "All" ? "Recent Match Logs" : `${activeCategory} Logs`}
+            </h2>
+            <span className="text-sm text-slate-500">
+              {golls.length > 0 && `Showing ${golls.length} results`}
+            </span>
+          </div>
 
-        <GollFeed
-          golls={filteredGolls}
-          isLoading={isLoading && golls.length === 0} // Show skeleton only on initial load
-          activeCategory={activeCategory}
-          onGollClick={onGollClick}
-          onNavigate={onNavigate}
-        />
+          <GollFeed
+            golls={filteredGolls}
+            isLoading={isLoading && golls.length === 0} // Show skeleton only on initial load
+            activeCategory={activeCategory}
+            onGollClick={onGollClick}
+            onNavigate={onNavigate}
+            userProfile={userProfile} // Pass userProfile
+          />
 
-        <div className="mt-8 text-center">
-          {hasMore && (
-            <button
-              onClick={loadMore}
-              disabled={isLoading}
-              className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-blue-300"
-            >
-              {isLoading ? "Loading..." : "Load More"}
-            </button>
-          )}
-        </div>
-      </main>
+          <div className="mt-8 text-center">
+            {hasMore && (
+              <button
+                onClick={loadMore}
+                disabled={isLoading}
+                className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-blue-300"
+              >
+                {isLoading ? "Loading..." : "Load More"}
+              </button>
+            )}
+          </div>
+        </main>
 
-      {/* Floating Action Button for Mobile only */}
-      <motion.button
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        onClick={() => onNavigate('create')}
-        className="sm:hidden fixed bottom-6 right-6 w-14 h-14 bg-[#1A237E] text-white rounded-full shadow-lg shadow-blue-900/30 flex items-center justify-center z-50 hover:bg-[#151b60] transition-colors"
-      >
-        <Plus className="w-7 h-7" />
-      </motion.button>
-    </div>
+        {/* Floating Action Button for Mobile only */}
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={handleCreateClick}
+          className="sm:hidden fixed bottom-6 right-6 w-14 h-14 bg-[#1A237E] text-white rounded-full shadow-lg shadow-blue-900/30 flex items-center justify-center z-50 hover:bg-[#151b60] transition-colors"
+        >
+          <Plus className="w-7 h-7" />
+        </motion.button>
+      </div>
+      
+      <AlertDialog open={isCreateAlertOpen} onOpenChange={setCreateAlertOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Login Required</AlertDialogTitle>
+            <AlertDialogDescription>
+              You need to be logged in to create a new log. Would you like to go to the login page?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => onNavigate('login')}>
+              Go to Login
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }

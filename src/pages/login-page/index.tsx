@@ -1,12 +1,14 @@
 import React from 'react';
 import { motion } from 'motion/react';
 import SocialLoginButtons from '@/features/auth-by-social/SocialLoginButtons';
+import { Screen } from '@/shared/lib/navigation'; // Import Screen
 
 interface LoginPageProps {
   onLoginSuccess: () => void;
+  onNavigate: (screen: Screen, params?: any) => void; // Add onNavigate
 }
 
-export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
+export default function LoginPage({ onLoginSuccess, onNavigate }: LoginPageProps) { // Destructure onNavigate
   
 
 
@@ -15,7 +17,7 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
       {/* Background Image with Overlay */}
       <div className="absolute inset-0 z-0">
         <img 
-          src="https://images.unsplash.com/photo-1609709795647-cf9f73023b58?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHx3aW50ZXIlMjBzcG9ydHMlMjBpY2UlMjByaW5rJTIwYWJzdHJhY3QlMjBkYXJrJTIwYmx1ZSUyMG5hdnl8ZW58MXx8fHwxNzY5MTY3ODY0fDA&ixlib=rb-4.1.0&q=80&w=1080" 
+          src="https://images.unsplash.com/photo-1609709795647-cf9f73023b58?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHx3aW50ZXJsMjBzcG9ydHMlMjBpY2UlMjByaW5rJTIwYWJzdHJhY3QlMjBkYXJrJTIwYmx1ZSUyMG5hdnl8ZW58MXx8fHwxNzY5MTY3ODY0fDA&ixlib=rb-4.1.0&q=80&w=1080" 
           alt="Winter Sports Background" 
           className="w-full h-full object-cover opacity-40"
         />
@@ -40,7 +42,7 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
             <p className="text-blue-200/80 text-sm font-medium">2026 Winter Sports Record Service</p>
           </div>
 
-          <SocialLoginButtons onLoginSuccess={onLoginSuccess} />
+          <SocialLoginButtons onLoginSuccess={onLoginSuccess} onNavigate={onNavigate} /> {/* Pass onNavigate */}
 
         </div>
       </motion.div>

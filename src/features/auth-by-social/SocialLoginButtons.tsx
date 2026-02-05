@@ -1,11 +1,13 @@
 import React from 'react';
 import { Button } from '@/shared/ui/button';
+import { Screen } from '@/shared/lib/navigation'; // Import Screen
 
 interface SocialLoginButtonsProps {
   onLoginSuccess: () => void;
+  onNavigate: (screen: Screen, params?: any) => void; // Add onNavigate
 }
 
-export default function SocialLoginButtons({ onLoginSuccess }: SocialLoginButtonsProps) {
+export default function SocialLoginButtons({ onLoginSuccess, onNavigate }: SocialLoginButtonsProps) { // Destructure onNavigate
   
   const handleGoogleLogin = () => {
     // Redirect to the backend's OAuth2 authorization endpoint
@@ -27,8 +29,8 @@ export default function SocialLoginButtons({ onLoginSuccess }: SocialLoginButton
     alert(`Login with Apple is not implemented yet.`);
   };
   
-  const handleDemoLogin = () => {
-    onLoginSuccess();
+  const handleGoToMainPage = () => { // Renamed handler for clarity
+    onNavigate('feed'); // Navigate to the main feed page
   };
 
   return (
@@ -75,11 +77,11 @@ export default function SocialLoginButtons({ onLoginSuccess }: SocialLoginButton
           By continuing, you agree to our Terms of Service and Privacy Policy.
         </p>
         <Button
-          onClick={handleDemoLogin}
+          onClick={handleGoToMainPage} // Use the new handler
           variant="link"
           className="mt-4 text-[10px] text-white/30 hover:text-white/50 underline"
         >
-          Skip to Demo (Development Only)
+          Go to Main Page
         </Button>
       </div>
     </>

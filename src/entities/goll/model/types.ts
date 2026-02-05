@@ -38,3 +38,12 @@ export interface Goll {
 
 // Type for a single participant in the form
 export type ParticipantInput = { id?: string; name: string; type: 'individual' | 'team'; votes?: number; displayOrder: number };
+
+export interface GollSearchResponse {
+  id: number;
+  title: string;
+  sport: string;
+  matchDate: string;
+  ownerName: string;
+  venue: string;
+}

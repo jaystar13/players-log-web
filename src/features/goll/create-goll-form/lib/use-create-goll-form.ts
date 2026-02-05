@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Goll } from '@/entities/goll/model/types';
+import { Goll, GollSearchResponse } from '@/entities/goll/model/types';
 import { InitialGollFormData, SPORTS_CATEGORIES, ParticipantInput } from '../model/types'; // Import ParticipantInput
-import { fetchExistingGolls } from '../api';
+import { api } from '@/shared/api';
 
 export const useCreateGollForm = (initialData?: InitialGollFormData) => {
   const isEditMode = !!initialData;
@@ -42,20 +42,41 @@ export const useCreateGollForm = (initialData?: InitialGollFormData) => {
   );
   const [newParticipant, setNewParticipant] = useState("");
 
-  const [existingAllGolls, setExistingAllGolls] = useState<Goll[]>([]); // Renamed to avoid confusion with similarLogs
-  const [similarGolls, setSimilarGolls] = useState<Goll[]>([]);
+  const [similarGolls, setSimilarGolls] = useState<GollSearchResponse[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
   
   // Preview Mode State
   const [showPreview, setShowPreview] = useState(false);
 
-  // -- Effect: Fetch Existing Logs for Duplicate Detection --
+  // -- Effect: Debounced search for similar golls based on title --
   useEffect(() => {
-    const loadExistingGolls = async () => {
-      const golls = await fetchExistingGolls();
-      setExistingAllGolls(golls);
+    if (title.length < 3) {
+      setSimilarGolls([]);
+      return;
+    }
+
+    setIsSearching(true);
+    const handler = setTimeout(() => {
+      api.searchGolls(title, 'title')
+        .then(results => {
+          // Filter out the goll being edited from the search results
+          const filteredResults = results.content.filter(goll => !isEditMode || goll.id !== initialData.id);
+          setSimilarGolls(filteredResults);
+        })
+        .catch(error => {
+          console.error("Failed to search for similar golls:", error);
+          setSimilarGolls([]);
+        })
+        .finally(() => {
+          setIsSearching(false);
+        });
+    }, 500); // 500ms debounce
+
+    return () => {
+      clearTimeout(handler);
     };
-    loadExistingGolls();
-  }, []);
+  }, [title, isEditMode, initialData?.id]);
+
 
   // -- Effect: Load Initial Data (Deep Check) --
   useEffect(() => {
@@ -135,28 +156,6 @@ export const useCreateGollForm = (initialData?: InitialGollFormData) => {
       stats: { likes: initialData?.stats?.likes || 0, views: initialData?.stats?.views || 0 }
     };
   }, [sport, title, date, time, venue, matchType, participantUnit, competitorA, competitorB, participants, previewLinks, initialData, description]);
-
-  // Smart detection logic for similar logs
-  useEffect(() => {
-    // Skip if we don't have minimum info
-    if (!sport || (!date && title.length < 2)) {
-      setSimilarGolls([]);
-      return;
-    }
-
-    const matches = existingAllGolls.filter(goll => {
-      // Don't match with self if editing
-      if (initialData && goll.id === initialData.id) return false;
-
-      const sportMatch = goll.sport === sport;
-      const dateMatch = date ? goll.matchDate === date : false;
-      const titleMatch = title.length > 2 && goll.title?.toLowerCase().includes(title.toLowerCase());
-      
-      // Match if: Same Sport AND (Same Date OR Similar Title)
-      return sportMatch && (dateMatch || titleMatch);
-    });
-    setSimilarGolls(matches);
-  }, [sport, date, title, existingAllGolls, initialData]);
 
   const handleAddParticipant = () => {
     if (newParticipant.trim()) {
@@ -249,7 +248,8 @@ export const useCreateGollForm = (initialData?: InitialGollFormData) => {
     competitorB, setCompetitorB,
     participants, setParticipants,
     newParticipant, setNewParticipant,
-    similarGolls: similarGolls,
+    similarGolls,
+    isSearching, // Expose isSearching
     showPreview, setShowPreview,
     getTeamsString,
     getPreviewData,

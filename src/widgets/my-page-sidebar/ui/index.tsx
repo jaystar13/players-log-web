@@ -1,7 +1,7 @@
 import { ProfileCard } from '@/entities/user/ui/profile-card';
 import { cn } from '@/shared/ui/utils';
 import { Edit3, Heart } from 'lucide-react';
-import React from 'react';
+import React, { useEffect } from 'react';
 
 interface MyPageSidebarProps {
   userProfile: any;
@@ -12,6 +12,13 @@ interface MyPageSidebarProps {
 }
 
 export const MyPageSidebar = ({ userProfile, activeTab, setActiveTab, onEditClick, isMyProfile }: MyPageSidebarProps) => {
+  useEffect(() => {
+    // If not my profile and currently on 'liked' tab, switch to 'created'
+    if (!isMyProfile && activeTab === 'liked') {
+      setActiveTab('created');
+    }
+  }, [isMyProfile, activeTab, setActiveTab]); // Dependencies
+
   return (
     <aside className="lg:col-span-3 space-y-6">
       <ProfileCard userProfile={userProfile} onEditClick={onEditClick} isMyProfile={isMyProfile} />
@@ -21,34 +28,38 @@ export const MyPageSidebar = ({ userProfile, activeTab, setActiveTab, onEditClic
         <button
           onClick={() => setActiveTab('created')}
           className={cn(
-            "w-full flex items-center justify-between p-4 transition-all border-b border-slate-50",
-            activeTab === 'created' 
-              ? "bg-[#E1F5FE] text-[#1A237E] font-bold" 
+            "w-full flex items-center justify-between p-4 transition-all",
+            // Conditional border-b: only if there's a second tab (i.e., it's my profile)
+            isMyProfile && "border-b border-slate-50",
+            activeTab === 'created'
+              ? "bg-[#E1F5FE] text-[#1A237E] font-bold"
               : "text-slate-600 hover:bg-slate-50"
           )}
         >
           <div className="flex items-center gap-3">
             <Edit3 className="w-5 h-5" />
-            <span>My Created Logs</span>
+            <span>{isMyProfile ? "My Created Logs" : "Created Logs"}</span> {/* Dynamic text */}
           </div>
           {activeTab === 'created' && <div className="w-1.5 h-1.5 rounded-full bg-[#1A237E]" />}
         </button>
-        
-        <button
-          onClick={() => setActiveTab('liked')}
-          className={cn(
-            "w-full flex items-center justify-between p-4 transition-all",
-            activeTab === 'liked' 
-              ? "bg-[#E1F5FE] text-[#1A237E] font-bold" 
-              : "text-slate-600 hover:bg-slate-50"
-          )}
-        >
-          <div className="flex items-center gap-3">
-            <Heart className="w-5 h-5" />
-            <span>Liked Logs</span>
-          </div>
-          {activeTab === 'liked' && <div className="w-1.5 h-1.5 rounded-full bg-[#1A237E]" />}
-        </button>
+
+        {isMyProfile && ( // Conditionally render "Liked Logs" button
+          <button
+            onClick={() => setActiveTab('liked')}
+            className={cn(
+              "w-full flex items-center justify-between p-4 transition-all",
+              activeTab === 'liked'
+                ? "bg-[#E1F5FE] text-[#1A237E] font-bold"
+                : "text-slate-600 hover:bg-slate-50"
+            )}
+          >
+            <div className="flex items-center gap-3">
+              <Heart className="w-5 h-5" />
+              <span>Liked Logs</span>
+            </div>
+            {activeTab === 'liked' && <div className="w-1.5 h-1.5 rounded-full bg-[#1A237E]" />}
+          </button>
+        )}
       </nav>
     </aside>
   );
